@@ -22,9 +22,9 @@ Managing a salon or appointment‑based business remotely can be difficult due t
 ---
 
 ## 🛠️ Tech Stack
-- *Backend*: PHP / Node.js (flexible choice)  
-- *Database*: SQL (MySQL/PostgreSQL)  
-- *Frontend*: Vue.js / React  
+- *Backend*:  Node.js 
+- *Database*: SQL (PostgreSQL)  
+- *Frontend*: Vue.js 
 - *Hosting*: AWS / Azure Cloud  
 
 ---
