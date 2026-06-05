@@ -256,3 +256,30 @@ export class UserSchema extends BaseModel {
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null
 }
+
+export class WalkInSchema extends BaseModel {
+  static $columns = ['businessId', 'createdAt', 'customerName', 'customerPhone', 'date', 'id', 'serviceId', 'staffId', 'synced', 'time', 'updatedAt'] as const
+  $columns = WalkInSchema.$columns
+  @column()
+  declare businessId: number | null
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column()
+  declare customerName: string
+  @column()
+  declare customerPhone: string | null
+  @column.date()
+  declare date: DateTime
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare serviceId: number | null
+  @column()
+  declare staffId: number | null
+  @column()
+  declare synced: boolean | null
+  @column()
+  declare time: string
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+}
