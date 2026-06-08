@@ -10,8 +10,18 @@ export default class extends BaseSchema {
       table.integer('owner_id').unsigned().references('id').inTable('users').onDelete('CASCADE')
       // The business name entered during onboarding (e.g. "Luxe Salon")
       table.string('name').notNullable()
-      // The type of business — only these four categories are allowed
-      table.enum('category', ['salon', 'barbershop', 'car_wash', 'garage']).notNullable()
+      // The type of business — only these categories are allowed
+      table
+        .enum('category', [
+          'Beauty & Personal Care',
+          'Health & Fitness',
+          'Medical & Wellness',
+          'Pet Services',
+          'Home Services',
+          'Professional Services',
+          'Tech Services',
+        ])
+        .notNullable()
       // Optional description the owner writes during onboarding (max 300 characters on the frontend)
       table.text('description').nullable()
       // File path or URL to the business logo uploaded during onboarding

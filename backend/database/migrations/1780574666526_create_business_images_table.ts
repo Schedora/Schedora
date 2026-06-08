@@ -6,7 +6,12 @@ export default class extends BaseSchema {
   async up() {
     this.schema.createTable(this.tableName, (table) => {
       table.increments('id')
-      table.integer('business_id').unsigned().references('id').inTable('businesses').onDelete('CASCADE')
+      table
+        .integer('business_id')
+        .unsigned()
+        .references('id')
+        .inTable('businesses')
+        .onDelete('CASCADE')
       //business the images belong to
       table.string('url').notNullable()
       //web path of the image
