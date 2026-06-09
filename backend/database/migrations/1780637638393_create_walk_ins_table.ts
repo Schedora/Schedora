@@ -19,7 +19,7 @@ export default class extends BaseSchema {
       table.time('time').notNullable()
       //when walk-in happened
       table.boolean('synced').defaultTo(false)
-      //tracks whether the walk-in has been added to the main booking report
+      //tracks whether the walk-in has been added to the main booking report`
       table.timestamp('created_at').notNullable()
       table.timestamp('updated_at').nullable()
     })
