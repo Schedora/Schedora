@@ -8,9 +8,19 @@ export default class extends BaseSchema {
       table.increments('id')
       table.integer('staff_id').unsigned().references('id').inTable('staff').onDelete('CASCADE')
       //staff member serving the walk-in records it themselves on their dashboard
-      table.integer('service_id').unsigned().references('id').inTable('services').onDelete('CASCADE')
+      table
+        .integer('service_id')
+        .unsigned()
+        .references('id')
+        .inTable('services')
+        .onDelete('CASCADE')
       //service the walk-in customer is getting
-      table.integer('business_id').unsigned().references('id').inTable('businesses').onDelete('CASCADE')
+      table
+        .integer('business_id')
+        .unsigned()
+        .references('id')
+        .inTable('businesses')
+        .onDelete('CASCADE')
       //business walkin happended at
       table.string('customer_name').notNullable()
       table.string('customer_phone').nullable()

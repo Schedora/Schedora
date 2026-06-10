@@ -4,27 +4,39 @@ type ParamValue = string | number | bigint | boolean
 
 export type ScannedRoutes = {
   ALL: {
-    'home': { paramsTuple?: []; params?: {} }
-    'new_account.create': { paramsTuple?: []; params?: {} }
-    'new_account.store': { paramsTuple?: []; params?: {} }
-    'session.create': { paramsTuple?: []; params?: {} }
-    'session.store': { paramsTuple?: []; params?: {} }
-    'session.destroy': { paramsTuple?: []; params?: {} }
+    'drive.fs.serve': { paramsTuple: [...ParamValue[]]; params: {'*': ParamValue[]} }
+    'businesses.index': { paramsTuple?: []; params?: {} }
+    'businesses.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'businesses.store': { paramsTuple?: []; params?: {} }
+    'businesses.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'businesses.register_new': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'businesses.upload_images': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'businesses.set_cover': { paramsTuple: [ParamValue,ParamValue]; params: {'id': ParamValue,'imageId': ParamValue} }
+    'businesses.set_banner': { paramsTuple: [ParamValue,ParamValue]; params: {'id': ParamValue,'imageId': ParamValue} }
+    'businesses.delete_image': { paramsTuple: [ParamValue,ParamValue]; params: {'id': ParamValue,'imageId': ParamValue} }
   }
   GET: {
-    'home': { paramsTuple?: []; params?: {} }
-    'new_account.create': { paramsTuple?: []; params?: {} }
-    'session.create': { paramsTuple?: []; params?: {} }
+    'drive.fs.serve': { paramsTuple: [...ParamValue[]]; params: {'*': ParamValue[]} }
+    'businesses.index': { paramsTuple?: []; params?: {} }
+    'businesses.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
   HEAD: {
-    'home': { paramsTuple?: []; params?: {} }
-    'new_account.create': { paramsTuple?: []; params?: {} }
-    'session.create': { paramsTuple?: []; params?: {} }
+    'drive.fs.serve': { paramsTuple: [...ParamValue[]]; params: {'*': ParamValue[]} }
+    'businesses.index': { paramsTuple?: []; params?: {} }
+    'businesses.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
   POST: {
-    'new_account.store': { paramsTuple?: []; params?: {} }
-    'session.store': { paramsTuple?: []; params?: {} }
-    'session.destroy': { paramsTuple?: []; params?: {} }
+    'businesses.store': { paramsTuple?: []; params?: {} }
+    'businesses.register_new': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'businesses.upload_images': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+  }
+  PUT: {
+    'businesses.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'businesses.set_cover': { paramsTuple: [ParamValue,ParamValue]; params: {'id': ParamValue,'imageId': ParamValue} }
+    'businesses.set_banner': { paramsTuple: [ParamValue,ParamValue]; params: {'id': ParamValue,'imageId': ParamValue} }
+  }
+  DELETE: {
+    'businesses.delete_image': { paramsTuple: [ParamValue,ParamValue]; params: {'id': ParamValue,'imageId': ParamValue} }
   }
 }
 declare module '@adonisjs/core/types/http' {
