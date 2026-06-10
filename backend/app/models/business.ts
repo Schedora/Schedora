@@ -1,7 +1,8 @@
 import { DateTime } from 'luxon'
-import { BaseModel, column, belongsTo } from '@adonisjs/lucid/orm'
-import type { BelongsTo } from '@adonisjs/lucid/types/relations'
+import { BaseModel, column, belongsTo, hasMany } from '@adonisjs/lucid/orm'
+import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
 import User from './user.js'
+import BusinessImage from './business_image.js'
 
 /**
  * Business Model
@@ -71,4 +72,9 @@ export default class Business extends BaseModel {
   // This lets us do business.owner to get the owner's details
   @belongsTo(() => User)
   declare owner: BelongsTo<typeof User>
+
+  // Relationship — a business can have many images
+  // Lets us write business.images to get all images for this business
+  @hasMany(() => BusinessImage)
+  declare images: HasMany<typeof BusinessImage>
 }
