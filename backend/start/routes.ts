@@ -1,30 +1,38 @@
-/*
-|--------------------------------------------------------------------------
-| Routes file
-|--------------------------------------------------------------------------
-|
-| The routes file is used for defining the HTTP routes.
-|
-*/
-
-import { middleware } from '#start/kernel'
-import { controllers } from '#generated/controllers'
 import router from '@adonisjs/core/services/router'
+import { middleware } from './kernel.js'
 
-router.on('/').render('pages/home').as('home')
+const BusinessesController = () => import('#controllers/businesses_controller')
 
-router
-  .group(() => {
-    router.get('signup', [controllers.NewAccount, 'create'])
-    router.post('signup', [controllers.NewAccount, 'store'])
-
-    router.get('login', [controllers.Session, 'create'])
-    router.post('login', [controllers.Session, 'store'])
-  })
-  .use(middleware.guest())
+// Returns all active businesses — filterable by category
+// Used by customer login dropdown
+router.get('/businesses', [BusinessesController, 'index'])
 
 router
   .group(() => {
-    router.post('logout', [controllers.Session, 'destroy'])
+    // Returns a single business by ID
+    // Used to populate the business landing page
+    router.get('/businesses/:id', [BusinessesController, 'show'])
+
+    // Creates a new business during owner onboarding
+    router.post('/businesses', [BusinessesController, 'store'])
+
+    // Updates an existing business profile
+    router.put('/businesses/:id', [BusinessesController, 'update'])
+
+    // Registers an additional business for an existing owner
+    // Called from the User Profile on the owner dashboard
+    router.post('/businesses/:id/register-new', [BusinessesController, 'registerNew'])
+
+    // Upload gallery images for a business
+    router.post('/businesses/:id/images', [BusinessesController, 'uploadImages'])
+
+    // Set a specific image as the cover photo
+    router.put('/businesses/:id/images/:imageId/cover', [BusinessesController, 'setCover'])
+
+    // Set a specific image as the main banner
+    router.put('/businesses/:id/images/:imageId/banner', [BusinessesController, 'setBanner'])
+
+    // Delete a specific image
+    router.delete('/businesses/:id/images/:imageId', [BusinessesController, 'deleteImage'])
   })
   .use(middleware.auth())
