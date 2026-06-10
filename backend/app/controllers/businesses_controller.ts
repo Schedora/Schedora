@@ -1,5 +1,7 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Business from '#models/business'
+import BusinessImage from '#models/business_image'
+import { cuid } from '@adonisjs/core/helpers'
 
 /**
  * BusinessesController
@@ -137,6 +139,184 @@ export default class BusinessesController {
     return response.created({
       message: 'New business registered successfully',
       data: business,
+    })
+  }
+  /**
+   * POST /businesses/:id/images
+   * Uploads one or more gallery images for a business
+   * Called during onboarding on the Visual Identity step
+   * and any time the owner updates their gallery afterwards
+   */
+  async uploadImages({ params, request, response, auth }: HttpContext) {
+    // Find the business or return 404 if it does not exist
+    const business = await Business.findOrFail(params.id)
+
+    // Make sure the logged in owner actually owns this business
+    const owner = auth.getUserOrFail()
+    if (business.ownerId !== owner.id) {
+      return response.forbidden({
+        message: 'You do not have permission to upload images for this business',
+      })
+    }
+
+    // Get the uploaded files from the request
+    // getFiles() returns an array so owners can upload multiple images at once
+    const images = request.files('images', {
+      size: '10mb',
+      extnames: ['jpg', 'jpeg', 'png', 'webp'],
+    })
+
+    // If no files were sent return an error
+    if (!images || images.length === 0) {
+      return response.badRequest({
+        message: 'Please select at least one image to upload',
+      })
+    }
+
+    // Loop through each uploaded file and save it
+    const uploadedImages = []
+
+    for (const image of images) {
+      // Check the file passed validation (correct size and type)
+      if (!image.isValid) {
+        return response.badRequest({
+          message: `File ${image.clientName} is invalid: ${image.errors}`,
+        })
+      }
+
+      // Generate a unique filename so files never overwrite each other
+      // e.g. businesses/clx1234abc.jpg
+      const fileName = `${cuid()}.${image.extname}`
+
+      // Move the file to our storage folder
+      await image.move('storage/uploads/businesses', {
+        name: fileName,
+      })
+
+      // Save the image record to the database
+      const businessImage = await BusinessImage.create({
+        businessId: business.id,
+        url: `storage/uploads/businesses/${fileName}`,
+        isCover: false,
+        isBanner: false,
+        sortOrder: uploadedImages.length,
+      })
+
+      uploadedImages.push(businessImage)
+    }
+
+    return response.created({
+      message: `${uploadedImages.length} image(s) uploaded successfully`,
+      data: uploadedImages,
+    })
+  }
+
+  /**
+   * PUT /businesses/:id/images/:imageId/cover
+   * Sets a specific image as the cover photo for the business
+   * When an image is set as cover all other images for that business
+   * have their is_cover set to false automatically
+   */
+  async setCover({ params, response, auth }: HttpContext) {
+    // Find the business or return 404
+    const business = await Business.findOrFail(params.id)
+
+    // Check ownership
+    const owner = auth.getUserOrFail()
+    if (business.ownerId !== owner.id) {
+      return response.forbidden({
+        message: 'You do not have permission to update images for this business',
+      })
+    }
+
+    // Find the specific image or return 404
+    const image = await BusinessImage.findOrFail(params.imageId)
+
+    // Make sure this image actually belongs to this business
+    if (image.businessId !== business.id) {
+      return response.forbidden({
+        message: 'This image does not belong to this business',
+      })
+    }
+
+    // Remove cover status from all other images for this business
+    // This ensures only one image is the cover at a time
+    await BusinessImage.query().where('business_id', business.id).update({ isCover: false })
+
+    // Set this image as the cover
+    image.isCover = true
+    await image.save()
+
+    return response.ok({
+      message: 'Cover image updated successfully',
+      data: image,
+    })
+  }
+
+  /**
+   * PUT /businesses/:id/images/:imageId/banner
+   * Sets a specific image as the main banner for the business landing page
+   * Works the same way as setCover — only one banner allowed at a time
+   */
+  async setBanner({ params, response, auth }: HttpContext) {
+    const business = await Business.findOrFail(params.id)
+
+    const owner = auth.getUserOrFail()
+    if (business.ownerId !== owner.id) {
+      return response.forbidden({
+        message: 'You do not have permission to update images for this business',
+      })
+    }
+
+    const image = await BusinessImage.findOrFail(params.imageId)
+
+    if (image.businessId !== business.id) {
+      return response.forbidden({
+        message: 'This image does not belong to this business',
+      })
+    }
+
+    // Remove banner status from all other images for this business
+    await BusinessImage.query().where('business_id', business.id).update({ isBanner: false })
+
+    // Set this image as the banner
+    image.isBanner = true
+    await image.save()
+
+    return response.ok({
+      message: 'Banner image updated successfully',
+      data: image,
+    })
+  }
+
+  /**
+   * DELETE /businesses/:id/images/:imageId
+   * Deletes a specific image from the business gallery
+   * Removes both the database record and the actual file from storage
+   */
+  async deleteImage({ params, response, auth }: HttpContext) {
+    const business = await Business.findOrFail(params.id)
+
+    const owner = auth.getUserOrFail()
+    if (business.ownerId !== owner.id) {
+      return response.forbidden({
+        message: 'You do not have permission to delete images for this business',
+      })
+    }
+
+    const image = await BusinessImage.findOrFail(params.imageId)
+
+    if (image.businessId !== business.id) {
+      return response.forbidden({
+        message: 'This image does not belong to this business',
+      })
+    }
+
+    // Delete the database record
+    await image.delete()
+
+    return response.ok({
+      message: 'Image deleted successfully',
     })
   }
 }

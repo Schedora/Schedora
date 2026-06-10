@@ -22,5 +22,17 @@ router
     // Registers an additional business for an existing owner
     // Called from the User Profile on the owner dashboard
     router.post('/businesses/:id/register-new', [BusinessesController, 'registerNew'])
+
+    // Upload gallery images for a business
+    router.post('/businesses/:id/images', [BusinessesController, 'uploadImages'])
+
+    // Set a specific image as the cover photo
+    router.put('/businesses/:id/images/:imageId/cover', [BusinessesController, 'setCover'])
+
+    // Set a specific image as the main banner
+    router.put('/businesses/:id/images/:imageId/banner', [BusinessesController, 'setBanner'])
+
+    // Delete a specific image
+    router.delete('/businesses/:id/images/:imageId', [BusinessesController, 'deleteImage'])
   })
   .use(middleware.auth())
