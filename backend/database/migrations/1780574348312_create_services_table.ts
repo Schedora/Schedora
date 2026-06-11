@@ -7,7 +7,12 @@ export default class extends BaseSchema {
     this.schema.createTable(this.tableName, (table) => {
       table.increments('id')
       //every service gets a unique number
-      table.integer('business_id').unsigned().references('id').inTable('businesses').onDelete('CASCADE')
+      table
+        .integer('business_id')
+        .unsigned()
+        .references('id')
+        .inTable('businesses')
+        .onDelete('CASCADE')
       //links service to business id
       table.string('name').notNullable()
       //service name
