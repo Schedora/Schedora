@@ -9,9 +9,20 @@ export default class extends BaseSchema {
       //every staff gets a unique id
       table.integer('user_id').unsigned().references('id').inTable('users').onDelete('CASCADE')
       //links staff to their user account...first user then assigned as staff
-      table.integer('business_id').unsigned().references('id').inTable('businesses').onDelete('CASCADE')
+      table
+        .integer('business_id')
+        .unsigned()
+        .references('id')
+        .inTable('businesses')
+        .onDelete('CASCADE')
       //business staff works in
-      table.integer('branch_id').unsigned().references('id').inTable('branches').onDelete('SET NULL').nullable()
+      table
+        .integer('branch_id')
+        .unsigned()
+        .references('id')
+        .inTable('branches')
+        .onDelete('SET NULL')
+        .nullable()
       //branch they are assigned to
       table.string('role').notNullable()
       //job title

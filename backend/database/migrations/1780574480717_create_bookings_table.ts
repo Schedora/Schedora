@@ -13,14 +13,21 @@ export default class extends BaseSchema {
       //links to customer user's account
       table.integer('staff_id').unsigned().references('id').inTable('staff').onDelete('CASCADE')
       //staff member that will handle the booking
-      table.integer('service_id').unsigned().references('id').inTable('services').onDelete('CASCADE')
+      table
+        .integer('service_id')
+        .unsigned()
+        .references('id')
+        .inTable('services')
+        .onDelete('CASCADE')
       //servuce that was booked
       table.integer('branch_id').unsigned().references('id').inTable('branches').onDelete('CASCADE')
       //branch appointment is at
       table.date('date').notNullable()
       table.time('time').notNullable()
       //date and time of the appointment
-      table.enum('status', ['pending', 'confirmed', 'cancelled', 'completed', 'rescheduled']).defaultTo('pending')
+      table
+        .enum('status', ['pending', 'confirmed', 'cancelled', 'completed', 'rescheduled'])
+        .defaultTo('pending')
       //booking status
       table.text('notes').nullable()
       table.timestamp('cancelled_at').nullable()

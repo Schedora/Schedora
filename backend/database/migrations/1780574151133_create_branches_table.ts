@@ -7,7 +7,12 @@ export default class extends BaseSchema {
     this.schema.createTable(this.tableName, (table) => {
       table.increments('id')
       //each branch gets unique ID
-      table.integer('business_id').unsigned().references('id').inTable('businesses').onDelete('CASCADE')
+      table
+        .integer('business_id')
+        .unsigned()
+        .references('id')
+        .inTable('businesses')
+        .onDelete('CASCADE')
       //links branch to its parent business
       table.string('branch_name').notNullable()
       //name of branch
