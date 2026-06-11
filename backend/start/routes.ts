@@ -12,7 +12,6 @@ import router from '@adonisjs/core/services/router'
 
 const AuthController = () => import('#controllers/auth_controller')
 
-
 router
   .group(() => {
     //Register a new account
@@ -20,10 +19,8 @@ router
 
     //login
     router.post('/login', [AuthController, 'login'])
-
   })
   .prefix('/api/auth')
-  
 
 router
   .group(() => {
@@ -33,4 +30,5 @@ router
     //Get cureent user profile
     router.get('/me', [AuthController, 'me'])
   })
-  .prefix('/api/auth').use(middleware.auth({ guards: ['api'] }))
+  .prefix('/api/auth')
+  .use(middleware.auth({ guards: ['api'] }))
