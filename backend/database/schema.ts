@@ -260,7 +260,7 @@ export class StaffSchema extends BaseModel {
 }
 
 export class UserSchema extends BaseModel {
-  static $columns = ['createdAt', 'email', 'fullName', 'id', 'isActive', 'password', 'phone', 'role', 'updatedAt'] as const
+  static $columns = ['createdAt', 'email', 'fullName', 'id', 'isActive', 'password', 'passwordResetExpiry', 'passwordResetToken', 'phone', 'role', 'updatedAt'] as const
   $columns = UserSchema.$columns
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
@@ -274,6 +274,10 @@ export class UserSchema extends BaseModel {
   declare isActive: boolean | null
   @column({ serializeAs: null })
   declare password: string
+  @column.dateTime()
+  declare passwordResetExpiry: DateTime | null
+  @column()
+  declare passwordResetToken: string | null
   @column()
   declare phone: string | null
   @column()

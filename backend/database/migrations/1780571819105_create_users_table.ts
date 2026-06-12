@@ -19,6 +19,8 @@ export default class extends BaseSchema {
       //phone number
       table.boolean('is_active').defaultTo(true)
       //acctive or not
+      table.string('password_reset_token').nullable()
+      table.timestamp('password_reset_expiry').nullable()
       table.timestamp('created_at').notNullable()
       table.timestamp('updated_at').nullable()
       //when account was created or updated

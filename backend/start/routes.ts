@@ -24,6 +24,12 @@ router.group(() => {
 
   // Login
   router.post('/login', [AuthController, 'login'])
+
+  //Forgot password - send reset email
+  router.post('/forgot-password', [AuthController, 'forgotPassword'])
+
+  //Reset password - validate token and update password
+  router.post('/reset_password', [AuthController, 'resetPassword'])
 }).prefix('/api/auth')
 
 /*
@@ -77,4 +83,7 @@ router.group(() => {
   // Delete a specific image
   router.delete('/businesses/:id/images/:imageId', [BusinessesController, 'deleteImage'])
 
-}).prefix('/api').use(middleware.auth({ guards: ['api'] }))
+}).prefix('/api').use([
+  middleware.auth({ guards: ['api'] }),
+  middleware.owner()
+])
