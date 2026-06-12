@@ -3,6 +3,8 @@ import hash from '@adonisjs/core/services/hash'
 import { compose } from '@adonisjs/core/helpers'
 import { withAuthFinder } from '@adonisjs/auth/mixins/lucid'
 import { DbAccessTokensProvider } from '@adonisjs/auth/access_tokens'
+import { column } from '@adonisjs/lucid/orm'
+import{ DateTime } from 'luxon'
 
 const AuthFinder = withAuthFinder(() => hash.use('scrypt'), {
   uids: ['email'],
@@ -13,6 +15,13 @@ const AuthFinder = withAuthFinder(() => hash.use('scrypt'), {
 
 export default class User extends compose(UserSchema, AuthFinder) {
   static accessTokens = DbAccessTokensProvider.forModel(User)
+
+  //password reset
+  @column()
+  declare passwordResetToken: string | null
+
+  @column.dateTime()
+  declare passwordResetExpiry: DateTime | null
   /**
    * Get the user's initials from their full name or email.
    * Returns the first letter of first and last name if available,
