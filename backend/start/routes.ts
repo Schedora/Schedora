@@ -12,6 +12,7 @@ import router from '@adonisjs/core/services/router'
 
 const AuthController = () => import('#controllers/auth_controller')
 const BusinessesController = () => import('#controllers/businesses_controller')
+const StaffController = () => import('#controllers/staff_controller')
 
 /*
 |--------------------------------------------------------------------------
@@ -82,6 +83,38 @@ router.group(() => {
 
   // Delete a specific image
   router.delete('/businesses/:id/images/:imageId', [BusinessesController, 'deleteImage'])
+
+}).prefix('/api').use([
+  middleware.auth({ guards: ['api'] }),
+  middleware.owner()
+])
+
+/*
+|--------------------------------------------------------------------------
+| Staff Routes — Protected (owner only)
+|--------------------------------------------------------------------------
+*/
+router.group(() => {
+  // Get all staff for a business
+  router.get('/business/:id/staff', [StaffController, 'index'])
+
+  // Get individual staff profile
+  router.get('/business/:id/staff/:staffId', [StaffController, 'show'])
+
+  // Create staff account
+  router.post('/business/:id/staff', [StaffController, 'store'])
+
+  // Send invitation email
+  router.post('/business/:id/staff/:staffId/invite', [StaffController, 'invite'])
+
+  // Update staff details
+  router.put('/business/:id/staff/:staffId', [StaffController, 'update'])
+
+  // Remove staff member
+  router.delete('/business/:id/staff/:staffId', [StaffController, 'destroy'])
+
+  // Get available staff for booking
+  router.get('/business/:id/staff/available', [StaffController, 'available'])
 
 }).prefix('/api').use([
   middleware.auth({ guards: ['api'] }),

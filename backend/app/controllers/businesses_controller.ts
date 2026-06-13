@@ -1,7 +1,7 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Business from '#models/business'
 import BusinessImage from '#models/business_image'
-import { cuid } from '@adonisjs/core/helpers'
+import string from '@adonisjs/core/helpers/string'
 
 /**
  * BusinessesController
@@ -186,7 +186,7 @@ export default class BusinessesController {
 
       // Generate a unique filename so files never overwrite each other
       // e.g. businesses/clx1234abc.jpg
-      const fileName = `${cuid()}.${image.extname}`
+      const fileName = `${string.generateRandom(16)}.${image.extname}`
 
       // Move the file to our storage folder
       await image.move('storage/uploads/businesses', {
