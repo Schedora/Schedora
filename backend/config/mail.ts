@@ -42,8 +42,8 @@ const mailConfig = defineConfig({
        */
        auth: {
         type: 'login',
-        user: '2e9141aafd8818',
-        pass: '2f195aea3280a3',
+        user: 'f0df7f98ec3135',
+        pass: 'cb9296551af446',
       }, 
     }),
 		     
