@@ -4,6 +4,7 @@
     "rootDir": "./",
     "outDir": "./build",
     "skipLibCheck": true,
-    "noImplicitAny": false
+    "noImplicitAny": false,
+    "rewriteRelativeImportExtensions": true
   }
 }
