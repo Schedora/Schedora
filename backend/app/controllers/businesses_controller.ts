@@ -120,7 +120,7 @@ export default class BusinessesController {
    * without creating a new account
    * Called from the User Profile page on the owner dashboard
    */
-  async registerNew({ params, request, response, auth }: HttpContext) {
+  async registerNew({ request, response, auth }: HttpContext) {
     // Get the currently logged in owner
     const owner = auth.getUserOrFail()
 
@@ -174,7 +174,7 @@ export default class BusinessesController {
     }
 
     // Loop through each uploaded file and save it
-    const uploadedImages = []
+    const uploadedImages: BusinessImage[] = []
 
     for (const image of images) {
       // Check the file passed validation (correct size and type)
@@ -222,7 +222,7 @@ export default class BusinessesController {
     const business = await Business.findOrFail(params.id)
 
     // Check ownership
-    const owner = auth.getUserOrFail()
+    const owner = auth.user!
     if (business.ownerId !== owner.id) {
       return response.forbidden({
         message: 'You do not have permission to update images for this business',
@@ -261,7 +261,7 @@ export default class BusinessesController {
   async setBanner({ params, response, auth }: HttpContext) {
     const business = await Business.findOrFail(params.id)
 
-    const owner = auth.getUserOrFail()
+    const owner = auth.user!
     if (business.ownerId !== owner.id) {
       return response.forbidden({
         message: 'You do not have permission to update images for this business',
@@ -297,7 +297,7 @@ export default class BusinessesController {
   async deleteImage({ params, response, auth }: HttpContext) {
     const business = await Business.findOrFail(params.id)
 
-    const owner = auth.getUserOrFail()
+    const owner = auth.user!
     if (business.ownerId !== owner.id) {
       return response.forbidden({
         message: 'You do not have permission to delete images for this business',

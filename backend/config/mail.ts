@@ -1,5 +1,5 @@
 import env from '#start/env'
-import { defineConfig, MailResponse, transports } from '@adonisjs/mail'
+import { defineConfig, transports } from '@adonisjs/mail'
 
 const mailConfig = defineConfig({
   default: env.get('MAIL_MAILER'),
