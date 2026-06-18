@@ -3,35 +3,34 @@ import { BaseSchema } from '@adonisjs/lucid/schema'
 export default class extends BaseSchema {
   protected tableName = 'branches'
 
+  // 'up' runs when you execute the migration — creates the table
   async up() {
     this.schema.createTable(this.tableName, (table) => {
-      table.increments('id')
-      //each branch gets unique ID
+      table.increments('id') // auto-incrementing primary key
+
+      // Links this branch to a business. If the business is deleted, its branches are too (CASCADE)
       table
         .integer('business_id')
         .unsigned()
+        .notNullable()
         .references('id')
         .inTable('businesses')
         .onDelete('CASCADE')
-      //links branch to its parent business
-      table.string('branch_name').notNullable()
-      //name of branch
-      table.text('address').notNullable()
-      //physical location of the branch
-      table.string('phone').nullable()
-      //phone number of that specific branch
-      table.string('manager').nullable()
-      //name of branch manager
-      table.boolean('is_primary').defaultTo(false)
-      //whether its the main branch
-      table.boolean('is_active').defaultTo(true)
-      //whether branch is currently open for bookings
-      table.timestamp('created_at').notNullable()
-      table.timestamp('updated_at').nullable()
-      //when branch was added and updated
+
+      table.string('name').notNullable() // e.g. "Westlands Branch"
+      table.string('address').notNullable() // physical location
+      table.string('phone').notNullable() // branch contact number
+      table.string('manager').nullable() // optional — branch may not have a manager yet
+
+      // True for the first branch added — used in booking dropdown to pre-select it
+      table.boolean('is_primary').defaultTo(false).notNullable()
+
+      table.timestamp('created_at')
+      table.timestamp('updated_at')
     })
   }
 
+  // 'down' runs if you undo the migration — drops the table
   async down() {
     this.schema.dropTable(this.tableName)
   }

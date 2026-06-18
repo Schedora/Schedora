@@ -1,19 +1,6 @@
-import { indexEntities } from '@adonisjs/core'
 import { defineConfig } from '@adonisjs/core/app'
 
 export default defineConfig({
-  /*
-  |--------------------------------------------------------------------------
-  | Experimental flags
-  |--------------------------------------------------------------------------
-  |
-  | The following features will be enabled by default in the next major release
-  | of AdonisJS. You can opt into them today to avoid any breaking changes
-  | during upgrade.
-  |
-  */
-  experimental: {},
-
   /*
   |--------------------------------------------------------------------------
   | Commands
@@ -26,8 +13,7 @@ export default defineConfig({
   commands: [
     () => import('@adonisjs/core/commands'),
     () => import('@adonisjs/lucid/commands'),
-    () => import('@adonisjs/session/commands'),
-    () => import('@adonisjs/mail/commands')
+    () => import('@adonisjs/mail/commands'),
   ],
 
   /*
@@ -47,15 +33,10 @@ export default defineConfig({
       environment: ['repl', 'test'],
     },
     () => import('@adonisjs/core/providers/vinejs_provider'),
-    () => import('@adonisjs/core/providers/edge_provider'),
     () => import('@adonisjs/session/session_provider'),
-    () => import('@adonisjs/vite/vite_provider'),
-    () => import('@adonisjs/shield/shield_provider'),
-    () => import('@adonisjs/static/static_provider'),
     () => import('@adonisjs/lucid/database_provider'),
     () => import('@adonisjs/auth/auth_provider'),
-    () => import('@adonisjs/drive/drive_provider'),
-    () => import('@adonisjs/mail/mail_provider')
+    () => import('@adonisjs/mail/mail_provider'),
   ],
 
   /*
@@ -77,8 +58,7 @@ export default defineConfig({
   | Tests
   |--------------------------------------------------------------------------
   |
-  | List of test suites to organize tests by their type. Feel free to remove
-  | and add additional suites.
+  | List of test suites to organize tests by their type.
   |
   */
   tests: {
@@ -93,11 +73,6 @@ export default defineConfig({
         name: 'functional',
         timeout: 30000,
       },
-      {
-        files: ['tests/browser/**/*.spec.ts'],
-        name: 'browser',
-        timeout: 300000,
-      },
     ],
     forceExit: false,
   },
@@ -107,8 +82,8 @@ export default defineConfig({
   | Meta files
   |--------------------------------------------------------------------------
   |
-  | A collection of files you want to copy to the build folder when creating
-  | a production build.
+  | A collection of files you want to copy to the build folder when
+  | creating a production build.
   |
   */
   metaFiles: [
@@ -121,20 +96,4 @@ export default defineConfig({
       reloadServer: false,
     },
   ],
-
-  /*
-  |--------------------------------------------------------------------------
-  | Hooks
-  |--------------------------------------------------------------------------
-  |
-  | Assembler hooks are executed by the Assembler dev tool during various
-  | stages. Assembler is responsible for running the dev-server, tests, and
-  | creating production builds. These hooks run in a separate process than
-  | the main AdonisJS app.
-  |
-  */
-  hooks: {
-    init: [indexEntities()],
-    buildStarting: [() => import('@adonisjs/vite/build_hook')],
-  },
 })
