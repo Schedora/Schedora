@@ -15,6 +15,7 @@ const AuthController = () => import('#controllers/auth_controller')
 const BusinessesController = () => import('#controllers/businesses_controller')
 const StaffController = () => import('#controllers/staff_controller')
 const ServicesController = () => import('#controllers/services_controller')
+const AttendancesController = () => import('#controllers/attendances_controller')
 
 /*
 |--------------------------------------------------------------------------
@@ -130,6 +131,26 @@ router
   })
   .prefix('/api')
   .use([middleware.auth({ guards: ['api'] }), middleware.owner()])
+
+//---------------------------------------------------------- ------
+// Staff Availability API
+//---------------------------------------------------------------
+
+// Staff submits their weekly availability
+// Must be submitted at least 7 days before the week starts
+router.post('/staff/:staffId/availability', [AttendancesController, 'store'])
+
+// Get availability for a specific staff member
+// Used by the booking engine to filter available slots
+router.get('/staff/:staffId/availability', [AttendancesController, 'index'])
+
+// Update an existing availability record
+// Staff can update before a slot is booked
+router.put('/staff/:staffId/availability/:id', [AttendancesController, 'update'])
+
+// Get available booking slots for a business on a specific date
+// Used by the customer booking form
+router.get('/businesses/:businessId/available-slots', [AttendancesController, 'availableSlots'])
 
 /*
 |--------------------------------------------------------------------------
