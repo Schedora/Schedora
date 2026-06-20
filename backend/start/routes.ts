@@ -14,6 +14,7 @@ import BranchesController from '#controllers/branches_controller'
 const AuthController = () => import('#controllers/auth_controller')
 const BusinessesController = () => import('#controllers/businesses_controller')
 const StaffController = () => import('#controllers/staff_controller')
+const ServicesController = () => import('#controllers/services_controller')
 
 /*
 |--------------------------------------------------------------------------
@@ -106,6 +107,26 @@ router
 
     // Delete a specific branch
     router.delete('/businesses/:id/branches/:branchId', [BranchesController, 'destroy'])
+
+    // ---------------------------------------------------------------
+    // Service API
+    // ---------------------------------------------------------------
+
+    // Get all active services for a business
+    // Used to populate the Service Type dropdown on the customer booking form
+    router.get('/businesses/:id/services', [ServicesController, 'index'])
+
+    // Add a new service to a business catalog
+    // Called during onboarding and from the owner dashboard
+    router.post('/businesses/:id/services', [ServicesController, 'store'])
+
+    // Update an existing service
+    // Called when the owner edits a service from their dashboard
+    router.put('/businesses/:id/services/:serviceId', [ServicesController, 'update'])
+
+    // Delete a service permanently
+    // Called when the owner removes a service from their catalog
+    router.delete('/businesses/:id/services/:serviceId', [ServicesController, 'destroy'])
   })
   .prefix('/api')
   .use([middleware.auth({ guards: ['api'] }), middleware.owner()])

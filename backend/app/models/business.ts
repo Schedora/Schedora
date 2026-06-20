@@ -3,6 +3,7 @@ import { BaseModel, column, belongsTo, hasMany } from '@adonisjs/lucid/orm'
 import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
 import User from './user.js'
 import BusinessImage from './business_image.js'
+import Service from './service.js'
 
 /**
  * Business Model
@@ -23,7 +24,7 @@ export default class Business extends BaseModel {
   @column()
   declare name: string
 
-  // The type of business — only these seven are allowed
+  // The type of business — only these eight are allowed
   @column()
   declare category:
     | 'Beauty & Personal Care'
@@ -33,6 +34,7 @@ export default class Business extends BaseModel {
     | 'Home Services'
     | 'Professional Services'
     | 'Tech Services'
+    | 'Automotive Services'
 
   // Optional description the owner writes during onboarding
   @column()
@@ -77,4 +79,9 @@ export default class Business extends BaseModel {
   // Lets us write business.images to get all images for this business
   @hasMany(() => BusinessImage)
   declare images: HasMany<typeof BusinessImage>
+
+  // Relationship — a business can have many services
+  // Lets us write business.services to get all services for this business
+  @hasMany(() => Service)
+  declare services: HasMany<typeof Service>
 }
