@@ -16,6 +16,7 @@ const BusinessesController = () => import('#controllers/businesses_controller')
 const StaffController = () => import('#controllers/staff_controller')
 const ServicesController = () => import('#controllers/services_controller')
 const AttendancesController = () => import('#controllers/attendances_controller')
+const BookingController = () => import('#controllers/bookings_controller')
 
 /*
 |--------------------------------------------------------------------------
@@ -182,3 +183,37 @@ router
   })
   .prefix('/api')
   .use([middleware.auth({ guards: ['api'] }), middleware.owner()])
+
+/*
+|--------------------------------------------------------------------------
+| Booking Routes — Protected (login required)
+|--------------------------------------------------------------------------
+*/
+router
+  .group(() => {
+    // Create new booking — customers
+    router.post('/bookings', [BookingController, 'store'])
+
+    // Get all bookings — owner
+    router.get('/bookings', [BookingController, 'index'])
+
+    // Get bookings for a specific customer
+    router.get('/bookings/customer/:id', [BookingController, 'byCustomer'])
+
+    // Get bookings for a specific staff member
+    router.get('/bookings/staff/:id', [BookingController, 'byStaff'])
+
+    // Edit booking
+    router.put('/bookings/:id', [BookingController, 'update'])
+
+    // Cancel booking
+    router.delete('/bookings/:id', [BookingController, 'destroy'])
+
+    // Mark booking as complete — staff
+    router.put('/bookings/:id/complete', [BookingController, 'complete'])
+
+    // Create walk-in booking — staff
+    router.post('/bookings/walkin', [BookingController, 'walkIn'])
+  })
+  .prefix('/api')
+  .use(middleware.auth({ guards: ['api'] }))  
