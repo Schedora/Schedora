@@ -89,26 +89,24 @@ export class BookingSchema extends BaseModel {
 }
 
 export class BranchSchema extends BaseModel {
-  static $columns = ['address', 'branchName', 'businessId', 'createdAt', 'id', 'isActive', 'isPrimary', 'manager', 'phone', 'updatedAt'] as const
+  static $columns = ['address', 'businessId', 'createdAt', 'id', 'isPrimary', 'manager', 'name', 'phone', 'updatedAt'] as const
   $columns = BranchSchema.$columns
   @column()
   declare address: string
   @column()
-  declare branchName: string
-  @column()
-  declare businessId: number | null
+  declare businessId: number
   @column.dateTime({ autoCreate: true })
-  declare createdAt: DateTime
+  declare createdAt: DateTime | null
   @column({ isPrimary: true })
   declare id: number
   @column()
-  declare isActive: boolean | null
-  @column()
-  declare isPrimary: boolean | null
+  declare isPrimary: boolean
   @column()
   declare manager: string | null
   @column()
-  declare phone: string | null
+  declare name: string
+  @column()
+  declare phone: string
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null
 }
@@ -260,7 +258,7 @@ export class StaffSchema extends BaseModel {
 }
 
 export class UserSchema extends BaseModel {
-  static $columns = ['createdAt', 'email', 'fullName', 'id', 'isActive', 'password', 'phone', 'role', 'updatedAt'] as const
+  static $columns = ['createdAt', 'email', 'fullName', 'id', 'isActive', 'password', 'passwordResetExpiry', 'passwordResetToken', 'phone', 'role', 'updatedAt'] as const
   $columns = UserSchema.$columns
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
@@ -274,6 +272,10 @@ export class UserSchema extends BaseModel {
   declare isActive: boolean | null
   @column({ serializeAs: null })
   declare password: string
+  @column.dateTime()
+  declare passwordResetExpiry: DateTime | null
+  @column()
+  declare passwordResetToken: string | null
   @column()
   declare phone: string | null
   @column()
