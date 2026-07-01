@@ -1,237 +1,187 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Attendance from '#models/attendance'
 import Staff from '#models/staff'
+import Business from '#models/business'
 
 /**
  * AttendancesController
- * Handles all API endpoints related to staff availability
- * Staff submit their weekly availability here
- * The booking engine uses this data to show customers only available slots
+ * Handles the owner-facing side of attendance management
+ * Owners use this to monitor their full team's weekly presence
+ * and track overall team attendance performance
  */
 export default class AttendancesController {
   /**
-   * GET /staff/:staffId/availability
-   * Returns the availability plan for a specific staff member
-   * for a given week
-   * Used by the booking engine to filter available slots
+   * GET /businesses/:businessId/attendance
+   * Returns the full team attendance grid for a business
+   * Shows which staff are present or absent for each day of the week
+   * Used on the Staff Attendance Grid page in the owner dashboard
    */
-  async index({ params, request, response }: HttpContext) {
-    // Find the staff member or return 404
-    const staff = await Staff.findOrFail(params.staffId)
+  async index({ params, request, response, auth }: HttpContext) {
+    // Get the logged in owner
+    const owner = await auth.authenticate()
 
-    // Get the week_start date from the query string if provided
-    // e.g. /staff/1/availability?week=2024-10-28
+    // Find the business or return 404
+    const business = await Business.findOrFail(params.businessId)
+
+    // Make sure this business belongs to the logged in owner
+    if (business.ownerId !== owner.id) {
+      return response.forbidden({
+        message: 'You do not have permission to view attendance for this business',
+      })
+    }
+
+    // Get the week filter from query string if provided
+    // e.g. /businesses/1/attendance?week=2024-10-28
     const week = request.qs().week
 
-    // Build the query
-    const query = Attendance.query().where('staff_id', staff.id)
+    // Get all staff that belong to this business
+    const staff = await Staff.query().where('business_id', business.id)
 
-    // If a specific week was requested filter by it
-    // Otherwise return all availability records for this staff member
+    // Get attendance records for all staff in this business
+    // If a week filter was provided only return that week
+    const staffIds = staff.map((s) => s.id)
+
+    const query = Attendance.query().whereIn('staff_id', staffIds)
+
     if (week) {
       query.where('week_start', week)
     }
 
-    const availability = await query.orderBy('week_start', 'desc')
+    const attendance = await query.preload('staff').orderBy('week_start', 'desc')
 
     return response.ok({
-      message: 'Availability fetched successfully',
-      data: availability,
+      message: 'Team attendance fetched successfully',
+      data: attendance,
     })
   }
 
   /**
-   * POST /staff/:staffId/availability
-   * Staff member submits their availability for an upcoming week
-   * Must be submitted at least 7 days before the week starts
-   * Only available slots will show to customers in the booking form
+   * GET /businesses/:businessId/attendance/score
+   * Returns the team presence score for a business
+   * Calculated as the percentage of available days submitted
+   * vs the total possible working days across all staff
+   * Shown as the Team Presence Score card on the dashboard
    */
-  async store({ params, request, response, auth }: HttpContext) {
-    // Get the currently logged in user
-    const user = await auth.authenticate()
+  async score({ params, request, response, auth }: HttpContext) {
+    // Get the logged in owner
+    const owner = await auth.authenticate()
 
-    // Find the staff record for this staff member
-    const staff = await Staff.findOrFail(params.staffId)
+    // Find the business or return 404
+    const business = await Business.findOrFail(params.businessId)
 
-    // Make sure the logged in user is the same person as the staff member
-    // A staff member can only submit their own availability
-    if (staff.userId !== user.id) {
+    // Check ownership
+    if (business.ownerId !== owner.id) {
       return response.forbidden({
-        message: 'You can only submit availability for yourself',
+        message: 'You do not have permission to view this business attendance score',
       })
     }
 
-    // Get the availability data from the request body
-    const data = request.only([
-      'week_start',
-      'week_end',
-      'available_days',
-      'start_time',
-      'end_time',
-    ])
+    // Get the week to calculate score for
+    // Defaults to current week if not provided
+    const week = request.qs().week || new Date().toISOString().split('T')[0]
 
-    // Check the 7-day rule — staff must submit at least 7 days in advance
-    const weekStart = new Date(data.week_start)
-    const today = new Date()
-    const daysUntilWeek = Math.ceil((weekStart.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+    // Get all staff for this business
+    const staff = await Staff.query().where('business_id', business.id)
+    const staffIds = staff.map((s) => s.id)
+    const totalStaff = staff.length
 
-    if (daysUntilWeek < 7) {
-      return response.badRequest({
-        message: 'Availability must be submitted at least 7 days before the week starts',
-      })
-    }
-
-    // Check if availability already exists for this week
-    // If it does we update it instead of creating a duplicate
-    const existing = await Attendance.query()
-      .where('staff_id', staff.id)
-      .where('week_start', data.week_start)
-      .first()
-
-    if (existing) {
-      // Update the existing record
-      existing.merge({
-        weekEnd: data.week_end,
-        availableDays: data.available_days,
-        startTime: data.start_time,
-        endTime: data.end_time,
-      })
-      await existing.save()
-
+    if (totalStaff === 0) {
       return response.ok({
-        message: 'Availability updated successfully',
-        data: existing,
+        message: 'No staff found for this business',
+        data: {
+          score: 0,
+          totalStaff: 0,
+          staffSubmitted: 0,
+          week,
+        },
       })
     }
 
-    // Create a new availability record
-    const attendance = await Attendance.create({
-      staffId: staff.id,
-      weekStart: data.week_start,
-      weekEnd: data.week_end,
-      availableDays: data.available_days,
-      startTime: data.start_time,
-      endTime: data.end_time,
-    })
+    // Count how many staff submitted attendance for this week
+    const submitted = await Attendance.query()
+      .whereIn('staff_id', staffIds)
+      .where('week_start', '<=', week)
+      .where('week_end', '>=', week)
+      .count('* as total')
 
-    return response.created({
-      message: 'Availability submitted successfully',
-      data: attendance,
-    })
-  }
+    const staffSubmitted = Number((submitted[0] as any).$extras.total)
 
-  /**
-   * PUT /staff/:staffId/availability/:id
-   * Updates an existing availability record
-   * Staff can update their availability any time before a slot is booked
-   */
-  async update({ params, request, response, auth }: HttpContext) {
-    // Get the logged in user
-    const user = await auth.authenticate()
-
-    // Find the staff member
-    const staff = await Staff.findOrFail(params.staffId)
-
-    // Make sure it is their own availability
-    if (staff.userId !== user.id) {
-      return response.forbidden({
-        message: 'You can only update your own availability',
-      })
-    }
-
-    // Find the specific attendance record
-    const attendance = await Attendance.findOrFail(params.id)
-
-    // Make sure this attendance record belongs to this staff member
-    if (attendance.staffId !== staff.id) {
-      return response.forbidden({
-        message: 'This availability record does not belong to you',
-      })
-    }
-
-    // Get the updated data
-    const data = request.only(['available_days', 'start_time', 'end_time'])
-
-    // Apply the updates
-    attendance.merge({
-      availableDays: data.available_days,
-      startTime: data.start_time,
-      endTime: data.end_time,
-    })
-
-    await attendance.save()
+    // Calculate the presence score as a percentage
+    // e.g. if 9 out of 10 staff submitted = 90%
+    const score = Math.round((staffSubmitted / totalStaff) * 100)
 
     return response.ok({
-      message: 'Availability updated successfully',
-      data: attendance,
+      message: 'Team presence score fetched successfully',
+      data: {
+        score,
+        totalStaff,
+        staffSubmitted,
+        week,
+        // Compare to previous week
+        previousWeek: null, // can be implemented later
+      },
     })
   }
 
   /**
-   * GET /businesses/:businessId/available-slots
-   * Returns available booking slots for a business on a specific date
-   * Used by the customer booking form to show available dates and times
-   * Filters by service duration and staff availability
+   * GET /businesses/:businessId/attendance/summary
+   * Returns a summary of attendance by department or staff member
+   * Used on the weekly/monthly attendance view toggle
+   * Owner can switch between Weekly and Monthly views
    */
-  async availableSlots({ params, request, response }: HttpContext) {
-    // Get the date and service duration from query string
-    // e.g. /businesses/1/available-slots?date=2024-10-28&duration=60
-    const date = request.qs().date
-    const duration = parseInt(request.qs().duration || '30')
+  async summary({ params, request, response, auth }: HttpContext) {
+    // Get the logged in owner
+    const owner = await auth.authenticate()
 
-    if (!date) {
-      return response.badRequest({
-        message: 'Please provide a date to check available slots',
+    // Find the business or return 404
+    const business = await Business.findOrFail(params.businessId)
+
+    // Check ownership
+    if (business.ownerId !== owner.id) {
+      return response.forbidden({
+        message: 'You do not have permission to view this attendance summary',
       })
     }
 
-    // Get the day name from the date e.g. 'Monday'
-    const dayName = new Date(date).toLocaleDateString('en-US', { weekday: 'long' })
+    // Get view type — weekly or monthly
+    // e.g. /businesses/1/attendance/summary?view=weekly
+    const view = request.qs().view || 'weekly'
+    const week = request.qs().week
 
-    // Find all staff for this business who are available on this date
-    const availableStaff = await Attendance.query()
-      .where('week_start', '<=', date)
-      .where('week_end', '>=', date)
-      .whereRaw(`? = ANY(available_days)`, [dayName])
+    // Get all staff for this business
+    const staff = await Staff.query().where('business_id', business.id)
+    const staffIds = staff.map((s) => s.id)
+
+    // Get attendance records
+    const query = Attendance.query()
+      .whereIn('staff_id', staffIds)
       .preload('staff')
+      .orderBy('week_start', 'asc')
 
-    if (availableStaff.length === 0) {
-      return response.ok({
-        message: 'No available slots for this date',
-        data: [],
-      })
+    // Filter by week if provided
+    if (week) {
+      query.where('week_start', week)
     }
 
-    // Build time slots based on staff availability
-    // Each slot is start_time + duration minutes
-    const slots: { time: string; staffId: number; staffName: string }[] = []
+    const records = await query
 
-    for (const attendance of availableStaff) {
-      // Parse start and end times
-      const [startHour, startMin] = attendance.startTime.split(':').map(Number)
-      const [endHour, endMin] = attendance.endTime.split(':').map(Number)
-
-      const startMinutes = startHour * 60 + startMin
-      const endMinutes = endHour * 60 + endMin
-
-      // Generate slots every duration minutes
-      for (let time = startMinutes; time + duration <= endMinutes; time += duration) {
-        const hour = Math.floor(time / 60)
-          .toString()
-          .padStart(2, '0')
-        const min = (time % 60).toString().padStart(2, '0')
-
-        slots.push({
-          time: `${hour}:${min}`,
-          staffId: attendance.staff.id,
-          staffName: attendance.staff.role,
-        })
-      }
-    }
+    // Build the summary grid
+    // Each entry shows staff name, days available, and working hours
+    const summary = records.map((record) => ({
+      staffId: record.staffId,
+      staffRole: record.staff.role,
+      weekStart: record.weekStart,
+      weekEnd: record.weekEnd,
+      availableDays: record.availableDays,
+      startTime: record.startTime,
+      endTime: record.endTime,
+      daysAvailable: record.availableDays.length,
+      view,
+    }))
 
     return response.ok({
-      message: 'Available slots fetched successfully',
-      data: slots,
+      message: 'Attendance summary fetched successfully',
+      data: summary,
     })
   }
 }
