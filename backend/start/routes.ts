@@ -138,21 +138,24 @@ router
 //---------------------------------------------------------------
 
 // Staff submits their weekly availability
-// Must be submitted at least 7 days before the week starts
-router.post('/staff/:staffId/availability', [AttendancesController, 'store'])
+router
+  .post('/staff/:staffId/availability', [AttendancesController, 'store'])
+  .as('availability.store')
 
 // Get availability for a specific staff member
-// Used by the booking engine to filter available slots
-router.get('/staff/:staffId/availability', [AttendancesController, 'index'])
+router
+  .get('/staff/:staffId/availability', [AttendancesController, 'index'])
+  .as('availability.index')
 
 // Update an existing availability record
-// Staff can update before a slot is booked
-router.put('/staff/:staffId/availability/:id', [AttendancesController, 'update'])
+router
+  .put('/staff/:staffId/availability/:id', [AttendancesController, 'update'])
+  .as('availability.update')
 
 // Get available booking slots for a business on a specific date
-// Used by the customer booking form
-router.get('/businesses/:businessId/available-slots', [AttendancesController, 'availableSlots'])
-
+router
+  .get('/businesses/:businessId/available-slots', [AttendancesController, 'availableSlots'])
+  .as('availability.slots')
 /*
 |--------------------------------------------------------------------------
 | Staff Routes — Protected (owner only)
@@ -186,6 +189,33 @@ router
 
 /*
 |--------------------------------------------------------------------------
+| Attendance API — Protected (owner only)
+|--------------------------------------------------------------------------
+*/
+router
+  .group(() => {
+    // Get full team attendance grid for a business
+    // Owner uses this to see which staff are present or absent each week
+    router
+      .get('/businesses/:businessId/attendance', [AttendancesController, 'index'])
+      .as('attendance.index')
+
+    // Get the team presence score for a business
+    // Shown as the Team Presence Score card on the owner dashboard
+    router
+      .get('/businesses/:businessId/attendance/score', [AttendancesController, 'score'])
+      .as('attendance.score')
+
+    // Get attendance summary — supports weekly and monthly view
+    // Owner can toggle between views on the attendance grid page
+    router
+      .get('/businesses/:businessId/attendance/summary', [AttendancesController, 'summary'])
+      .as('attendance.summary')
+  })
+  .prefix('/api')
+  .use([middleware.auth({ guards: ['api'] }), middleware.owner()])
+/*
+|--------------------------------------------------------------------------
 | Booking Routes — Protected (login required)
 |--------------------------------------------------------------------------
 */
@@ -216,4 +246,4 @@ router
     router.post('/bookings/walkin', [BookingController, 'walkIn'])
   })
   .prefix('/api')
-  .use(middleware.auth({ guards: ['api'] }))  
+  .use(middleware.auth({ guards: ['api'] }))
