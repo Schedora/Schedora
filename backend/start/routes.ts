@@ -17,6 +17,7 @@ const StaffController = () => import('#controllers/staff_controller')
 const ServicesController = () => import('#controllers/services_controller')
 const AttendancesController = () => import('#controllers/attendances_controller')
 const BookingController = () => import('#controllers/bookings_controller')
+const AnalyticsController = () => import('#controllers/analytics_controller')
 
 /*
 |--------------------------------------------------------------------------
@@ -214,6 +215,46 @@ router
   })
   .prefix('/api')
   .use([middleware.auth({ guards: ['api'] }), middleware.owner()])
+/*
+|--------------------------------------------------------------------------
+| Analytics & Reports API — Protected (owner only)
+|--------------------------------------------------------------------------
+*/
+router
+  .group(() => {
+    // Overview summary cards — total revenue, bookings, pending reviews, avg rating
+    router.get('/analytics/:businessId/overview', [AnalyticsController, 'overview'])
+
+    // Weekly or monthly revenue with completed vs pending split
+    router.get('/analytics/:businessId/revenue', [AnalyticsController, 'revenue'])
+
+    // Paginated transactions list — filterable by status
+    router.get('/analytics/:businessId/revenue/transactions', [AnalyticsController, 'transactions'])
+
+    // Daily revenue with trend direction — used in Trends page table
+    router.get('/analytics/:businessId/revenue/trends', [AnalyticsController, 'trends'])
+
+    // Revenue breakdown by service type
+    router.get('/analytics/:businessId/revenue/by-service', [
+      AnalyticsController,
+      'revenueByService',
+    ])
+
+    // Staff performance — ratings, completed and pending counts
+    router.get('/analytics/:businessId/staff/performance', [
+      AnalyticsController,
+      'staffPerformance',
+    ])
+
+    // Revenue distribution by service category
+    router.get('/analytics/:businessId/staff/distribution', [
+      AnalyticsController,
+      'revenueDistribution',
+    ])
+  })
+  .prefix('/api')
+  .use([middleware.auth({ guards: ['api'] }), middleware.owner()])
+
 /*
 |--------------------------------------------------------------------------
 | Booking Routes — Protected (login required)
