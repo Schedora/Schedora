@@ -17,6 +17,7 @@ const StaffController = () => import('#controllers/staff_controller')
 const ServicesController = () => import('#controllers/services_controller')
 const AttendancesController = () => import('#controllers/attendances_controller')
 const BookingController = () => import('#controllers/bookings_controller')
+const NotificationController = () => import('#controllers/notifications_controller')
 const AnalyticsController = () => import('#controllers/analytics_controller')
 
 /*
@@ -167,6 +168,9 @@ router
     // Get all staff for a business
     router.get('/business/:id/staff', [StaffController, 'index'])
 
+    // Get available staff for booking
+    router.get('/business/:id/staff/available', [StaffController, 'available'])
+
     // Get individual staff profile
     router.get('/business/:id/staff/:staffId', [StaffController, 'show'])
 
@@ -182,8 +186,6 @@ router
     // Remove staff member
     router.delete('/business/:id/staff/:staffId', [StaffController, 'destroy'])
 
-    // Get available staff for booking
-    router.get('/business/:id/staff/available', [StaffController, 'available'])
   })
   .prefix('/api')
   .use([middleware.auth({ guards: ['api'] }), middleware.owner()])
@@ -288,3 +290,25 @@ router
   })
   .prefix('/api')
   .use(middleware.auth({ guards: ['api'] }))
+<<<<<<< HEAD
+
+/*
+|--------------------------------------------------------------------------
+| Notification Routes — Protected (login required)
+|--------------------------------------------------------------------------
+*/
+router
+  .group(() => {
+    // Get all notifications for a staff member
+    router.get('/notifications/staff/:id', [NotificationController, 'byStaff'])
+
+    // Mark single notification as read
+    router.put('/notifications/:id/read', [NotificationController, 'markRead'])
+
+    // Mark all notifications as read
+    router.put('/notifications/staff/:id/read-all', [NotificationController, 'markAllRead'])
+  })  
+  .prefix('/api')
+  .use(middleware.auth({ guards: ['api'] }))  
+=======
+>>>>>>> 558d127d67e26741cffb4297e78e99ec8ee4d989

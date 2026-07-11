@@ -89,7 +89,7 @@ export class BookingSchema extends BaseModel {
 }
 
 export class BranchSchema extends BaseModel {
-  static $columns = ['address', 'businessId', 'createdAt', 'id', 'isPrimary', 'manager', 'name', 'phone', 'updatedAt'] as const
+  static $columns = ['address', 'businessId', 'createdAt', 'id', 'isActive', 'isPrimary', 'manager', 'name', 'phone', 'updatedAt'] as const
   $columns = BranchSchema.$columns
   @column()
   declare address: string
@@ -99,6 +99,8 @@ export class BranchSchema extends BaseModel {
   declare createdAt: DateTime | null
   @column({ isPrimary: true })
   declare id: number
+  @column()
+  declare isActive: boolean | null
   @column()
   declare isPrimary: boolean
   @column()

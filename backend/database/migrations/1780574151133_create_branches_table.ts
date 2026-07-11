@@ -24,6 +24,7 @@ export default class extends BaseSchema {
 
       // True for the first branch added — used in booking dropdown to pre-select it
       table.boolean('is_primary').defaultTo(false).notNullable()
+      table.boolean('is_active').defaultTo(true)
 
       table.timestamp('created_at')
       table.timestamp('updated_at')
