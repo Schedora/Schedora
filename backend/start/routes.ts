@@ -289,9 +289,8 @@ router
     router.post('/bookings/walkin', [BookingController, 'walkIn'])
   })
   .prefix('/api')
-  .use(middleware.auth({ guards: ['api'] }))
-<<<<<<< HEAD
-
+  .use(middleware.auth({ guards: ['api'] })
+  )
 /*
 |--------------------------------------------------------------------------
 | Notification Routes — Protected (login required)
@@ -310,5 +309,3 @@ router
   })  
   .prefix('/api')
   .use(middleware.auth({ guards: ['api'] }))  
-=======
->>>>>>> 558d127d67e26741cffb4297e78e99ec8ee4d989
