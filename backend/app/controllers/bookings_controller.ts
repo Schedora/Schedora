@@ -3,6 +3,8 @@ import Booking from '#models/booking'
 import vine from '@vinejs/vine'
 import string from '@adonisjs/core/helpers/string'
 import { DateTime } from 'luxon'
+import NotificationService from '#services/notification_services'
+import Staff from '#models/staff'
 
 /*
 |--------------------------------------------------------------------------
@@ -81,6 +83,20 @@ export default class BookingController {
       notes: data.notes,
     })
 
+    const staff = await Staff.query()
+      .where('id', data.staff_id)
+      .preload('user')
+      .firstOrFail()
+    if (staff.userId) {
+      await NotificationService.bookingCreated(
+        staff.userId,
+        auth.user!.fullName,
+        data.date,
+        data.time,
+        booking.id
+      )
+    }
+
     return response.created({
       message: 'Booking created successfully',
       booking: {
@@ -90,7 +106,7 @@ export default class BookingController {
         time: booking.time,
         status: booking.status,
       },
-    })
+    })  
   }
 
   /**
@@ -181,7 +197,7 @@ export default class BookingController {
    * Edit booking
    * PUT /api/bookings/:id
    */
-  async update({ params, request, response }: HttpContext) {
+  async update({ params, request, response, auth }: HttpContext) {
     const booking = await Booking.findOrFail(params.id)
     const data = await request.validateUsing(updateBookingValidator)
 
@@ -221,6 +237,23 @@ export default class BookingController {
     })
 
     await booking.save()
+  
+    // Notify staff of reschedule
+  if (isReschedule) {
+  const staff = await Staff.query()
+    .where('id', booking.staffId ?? 0)
+    .preload('user')
+    .first()
+  if (staff && staff.userId) {
+    await NotificationService.bookingRescheduled(
+      staff.userId,
+      auth.user!.fullName,
+      data.date ?? booking.date.toISODate() ?? '',
+      data.time ?? booking.time,
+      booking.id
+    )
+  }  
+}
 
     return response.ok({
       message: isReschedule ? 'Booking rescheduled successfully. Old slot has been released.' : 'Booking updated successfully',
@@ -238,7 +271,7 @@ export default class BookingController {
    * Cancel booking
    * DELETE /api/bookings/:id
    */
-  async destroy({ params, request, response }: HttpContext) {
+  async destroy({ params, request, response, auth }: HttpContext) {
     const booking = await Booking.findOrFail(params.id)
     const { reason } = request.body()
 
@@ -246,6 +279,22 @@ export default class BookingController {
     booking.cancelledAt = DateTime.now()
     booking.cancellationReason = reason || null
     await booking.save()
+
+    // Notify staff of cancellation
+    const staff = await Staff.query()
+      .where('id', booking.staffId ?? 0)
+      .preload('user')
+      .first()
+    
+    if (staff && staff.userId) {  
+      await NotificationService.bookingCancelled(
+        staff.userId,
+        auth.user!.fullName,
+        booking.date.toISODate() ?? '',
+        booking.time,
+        booking.id
+      )
+    }  
 
     return response.ok({
       message: 'Booking cancelled successfully. The slot has been released.'

@@ -12,7 +12,7 @@ export default class Branch extends BaseModel {
   declare businessId: number
 
   @column()
-  declare branchName: string // maps to "branch_name" column in DB
+  declare name: string // maps to "branch_name" column in DB
 
   @column()
   declare address: string

@@ -9,7 +9,7 @@ export default class BranchesController {
     const business = await Business.findOrFail(params.id)
 
     // Only pick the fields we expect — ignore anything extra sent in the request
-    const data = request.only(['branch_name', 'address', 'phone', 'manager'])
+    const data = request.only(['name', 'address', 'phone', 'manager'])
 
     // Count existing branches for this business
     const existingCount = await Branch.query().where('business_id', business.id).count('* as total')
