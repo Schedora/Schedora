@@ -290,7 +290,6 @@ router
   })
   .prefix('/api')
   .use(middleware.auth({ guards: ['api'] }))
-<<<<<<< HEAD
 
 /*
 |--------------------------------------------------------------------------
@@ -310,5 +309,3 @@ router
   })  
   .prefix('/api')
   .use(middleware.auth({ guards: ['api'] }))  
-=======
->>>>>>> 558d127d67e26741cffb4297e78e99ec8ee4d989
