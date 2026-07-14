@@ -9,8 +9,8 @@
 
 import { middleware } from '#start/kernel'
 import router from '@adonisjs/core/services/router'
-import BranchesController from '#controllers/branches_controller'
 
+const BranchesController = () => import('#controllers/branches_controller')
 const AuthController = () => import('#controllers/auth_controller')
 const BusinessesController = () => import('#controllers/businesses_controller')
 const StaffController = () => import('#controllers/staff_controller')
