@@ -135,29 +135,35 @@ router
   .prefix('/api')
   .use([middleware.auth({ guards: ['api'] }), middleware.owner()])
 
-//---------------------------------------------------------- ------
-// Staff Availability API
-//---------------------------------------------------------------
-
-// Staff submits their weekly availability
+/*
+|--------------------------------------------------------------------------
+| Staff Availability API — Protected (login required)
+|--------------------------------------------------------------------------
+*/
 router
-  .post('/staff/:staffId/availability', [AttendancesController, 'store'])
-  .as('availability.store')
+  .group(() => {
+    // Staff submits their weekly availability
+    router
+      .post('/staff/:staffId/availability', [AttendancesController, 'store'])
+      .as('availability.store')
 
-// Get availability for a specific staff member
-router
-  .get('/staff/:staffId/availability', [AttendancesController, 'index'])
-  .as('availability.index')
+    // Get availability for a specific staff member
+    router
+      .get('/staff/:staffId/availability', [AttendancesController, 'index'])
+      .as('availability.index')
 
-// Update an existing availability record
-router
-  .put('/staff/:staffId/availability/:id', [AttendancesController, 'update'])
-  .as('availability.update')
+    // Update an existing availability record
+    router
+      .put('/staff/:staffId/availability/:id', [AttendancesController, 'update'])
+      .as('availability.update')
 
-// Get available booking slots for a business on a specific date
-router
-  .get('/businesses/:businessId/available-slots', [AttendancesController, 'availableSlots'])
-  .as('availability.slots')
+    // Get available booking slots for a business on a specific date
+    router
+      .get('/businesses/:businessId/available-slots', [AttendancesController, 'availableSlots'])
+      .as('availability.slots')
+  })
+  .prefix('/api')
+  .use(middleware.auth({ guards: ['api'] }))
 /*
 |--------------------------------------------------------------------------
 | Staff Routes — Protected (owner only)
@@ -185,7 +191,6 @@ router
 
     // Remove staff member
     router.delete('/business/:id/staff/:staffId', [StaffController, 'destroy'])
-
   })
   .prefix('/api')
   .use([middleware.auth({ guards: ['api'] }), middleware.owner()])
@@ -290,8 +295,6 @@ router
   })
   .prefix('/api')
   .use(middleware.auth({ guards: ['api'] }))
-<<<<<<< HEAD
-
 /*
 |--------------------------------------------------------------------------
 | Notification Routes — Protected (login required)
@@ -307,8 +310,6 @@ router
 
     // Mark all notifications as read
     router.put('/notifications/staff/:id/read-all', [NotificationController, 'markAllRead'])
-  })  
+  })
   .prefix('/api')
-  .use(middleware.auth({ guards: ['api'] }))  
-=======
->>>>>>> 558d127d67e26741cffb4297e78e99ec8ee4d989
+  .use(middleware.auth({ guards: ['api'] }))
