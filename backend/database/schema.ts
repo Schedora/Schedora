@@ -187,7 +187,7 @@ export class NotificationSchema extends BaseModel {
 }
 
 export class ReviewSchema extends BaseModel {
-  static $columns = ['bookingId', 'businessId', 'businessRating', 'comment', 'createdAt', 'customerId', 'id', 'staffId', 'staffRating', 'updatedAt'] as const
+  static $columns = ['bookingId', 'businessId', 'businessRating', 'comment', 'createdAt', 'customerId', 'helpfulCount', 'id', 'isFlagged', 'rating', 'response', 'staffId', 'staffRating', 'updatedAt'] as const
   $columns = ReviewSchema.$columns
   @column()
   declare bookingId: number | null
@@ -201,8 +201,16 @@ export class ReviewSchema extends BaseModel {
   declare createdAt: DateTime
   @column()
   declare customerId: number | null
+  @column()
+  declare helpfulCount: number | null
   @column({ isPrimary: true })
   declare id: number
+  @column()
+  declare isFlagged: boolean | null
+  @column()
+  declare rating: number
+  @column()
+  declare response: string | null
   @column()
   declare staffId: number | null
   @column()

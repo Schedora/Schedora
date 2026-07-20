@@ -312,4 +312,34 @@ router
     router.put('/notifications/staff/:id/read-all', [NotificationController, 'markAllRead'])
   })
   .prefix('/api')
-  .use(middleware.auth({ guards: ['api'] }))
+  .use(middleware.auth({ guards: ['api'] })) 
+
+const ReviewController = () => import('#controllers/reviews_controller')
+
+/*
+|--------------------------------------------------------------------------
+| Review Routes
+|--------------------------------------------------------------------------
+*/
+router
+  .group(() => {
+    // Submit a review — customer only
+    router.post('/reviews', [ReviewController, 'store'])
+
+    // Get reviews for a business
+    router.get('/reviews/business/:id', [ReviewController, 'byBusiness'])
+
+    // Get reviews for a staff member
+    router.get('/reviews/staff/:id', [ReviewController, 'byStaff'])
+
+    // Owner responds to a review
+    router.post('/reviews/:id/respond', [ReviewController, 'respond'])
+
+    // Owner flags a review
+    router.put('/reviews/:id/flag', [ReviewController, 'flag'])
+
+    // Mark review as helpful
+    router.put('/reviews/:id/helpful', [ReviewController, 'helpful'])
+  })
+  .prefix('/api')
+  .use(middleware.auth({ guards: ['api'] }))  
