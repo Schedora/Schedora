@@ -5,5 +5,6 @@
     "outDir": "./build",
     "skipLibCheck": true,
     "noImplicitAny": false
+    "rewriteRelativeImportExtensions": true
   }
 }

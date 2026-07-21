@@ -19,6 +19,7 @@ const AttendancesController = () => import('#controllers/attendances_controller'
 const BookingController = () => import('#controllers/bookings_controller')
 const NotificationController = () => import('#controllers/notifications_controller')
 const AnalyticsController = () => import('#controllers/analytics_controller')
+const AvailabilityController = () => import('#controllers/availability_controller')
 
 /*
 |--------------------------------------------------------------------------
@@ -143,24 +144,19 @@ router
 router
   .group(() => {
     // Staff submits their weekly availability
-    router
-      .post('/staff/:staffId/availability', [AttendancesController, 'store'])
-      .as('availability.store')
+    router.post('/staff/:staffId/availability', [AvailabilityController, 'store'])
 
     // Get availability for a specific staff member
-    router
-      .get('/staff/:staffId/availability', [AttendancesController, 'index'])
-      .as('availability.index')
+    router.get('/staff/:staffId/availability', [AvailabilityController, 'index'])
 
     // Update an existing availability record
-    router
-      .put('/staff/:staffId/availability/:id', [AttendancesController, 'update'])
-      .as('availability.update')
+    router.put('/staff/:staffId/availability/:id', [AvailabilityController, 'update'])
 
     // Get available booking slots for a business on a specific date
-    router
-      .get('/businesses/:businessId/available-slots', [AttendancesController, 'availableSlots'])
-      .as('availability.slots')
+    router.get('/businesses/:businessId/available-slots', [
+      AvailabilityController,
+      'availableSlots',
+    ])
   })
   .prefix('/api')
   .use(middleware.auth({ guards: ['api'] }))
@@ -204,21 +200,14 @@ router
   .group(() => {
     // Get full team attendance grid for a business
     // Owner uses this to see which staff are present or absent each week
-    router
-      .get('/businesses/:businessId/attendance', [AttendancesController, 'index'])
-      .as('attendance.index')
+    // Get full team attendance grid for a business
+    router.get('/businesses/:businessId/attendance', [AttendancesController, 'index'])
 
     // Get the team presence score for a business
-    // Shown as the Team Presence Score card on the owner dashboard
-    router
-      .get('/businesses/:businessId/attendance/score', [AttendancesController, 'score'])
-      .as('attendance.score')
+    router.get('/businesses/:businessId/attendance/score', [AttendancesController, 'score'])
 
     // Get attendance summary — supports weekly and monthly view
-    // Owner can toggle between views on the attendance grid page
-    router
-      .get('/businesses/:businessId/attendance/summary', [AttendancesController, 'summary'])
-      .as('attendance.summary')
+    router.get('/businesses/:businessId/attendance/summary', [AttendancesController, 'summary'])
   })
   .prefix('/api')
   .use([middleware.auth({ guards: ['api'] }), middleware.owner()])
@@ -312,7 +301,7 @@ router
     router.put('/notifications/staff/:id/read-all', [NotificationController, 'markAllRead'])
   })
   .prefix('/api')
-  .use(middleware.auth({ guards: ['api'] })) 
+  .use(middleware.auth({ guards: ['api'] }))
 
 const ReviewController = () => import('#controllers/reviews_controller')
 
@@ -342,4 +331,4 @@ router
     router.put('/reviews/:id/helpful', [ReviewController, 'helpful'])
   })
   .prefix('/api')
-  .use(middleware.auth({ guards: ['api'] }))  
+  .use(middleware.auth({ guards: ['api'] }))
