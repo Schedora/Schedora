@@ -83,7 +83,7 @@ export default class ReviewController {
    * GET /api/reviews/business/:id
    */
   async byBusiness({ params, request, response }: HttpContext) {
-    const { rating, date, service_id } = request.qs()
+    const { rating, date } = request.qs()
 
     const query = Review.query()
       .where('business_id', params.id)

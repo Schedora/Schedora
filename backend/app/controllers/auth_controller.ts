@@ -4,39 +4,72 @@ import mail from '@adonisjs/mail/services/main'
 import string from '@adonisjs/core/helpers/string'
 import hash from '@adonisjs/core/services/hash'
 import { DateTime } from 'luxon'
+import vine from '@vinejs/vine'
 
+/*
+|--------------------------------------------------------------------------
+| Validators
+|--------------------------------------------------------------------------
+*/
+const registerValidator = vine.compile(
+  vine.object({
+    full_name: vine.string().minLength(2).maxLength(100),
+    email: vine.string().email().normalizeEmail(),
+    password: vine.string().minLength(8),
+    role: vine.enum(['customer', 'owner']),
+    phone: vine.string().optional(),
+  })
+)
+
+const loginValidator = vine.compile(
+  vine.object({
+    email: vine.string().email().normalizeEmail(),
+    password: vine.string().minLength(1),
+  })
+)
+
+const forgotPasswordValidator = vine.compile(
+  vine.object({
+    email: vine.string().email().normalizeEmail(),
+  })
+)
+
+const resetPasswordValidator = vine.compile(
+  vine.object({
+    token: vine.string().minLength(1),
+    password: vine.string().minLength(8),
+  })
+)
 
 export default class AuthController {
   /**
    * Register a new user
-   * POST /auth/register
+   * POST /api/auth/register
    */
   async register({ request, response }: HttpContext) {
-    //gets data user sent us
-    const { full_name, email, password, role, phone } = request.body()
+    // Validate input first
+    const data = await request.validateUsing(registerValidator)
 
     // Check if email already exists
-    const existingUser = await User.findBy('email', email)
+    const existingUser = await User.findBy('email', data.email)
     if (existingUser) {
       return response.conflict({
-        message: 'Email already registered'
+        message: 'An account with this email already exists'
       })
     }
 
     // Create the user
     const user = await User.create({
-      fullName: full_name,
-      email,
-      password,
-      role: role || 'customer',
-      phone,
+      fullName: data.full_name,
+      email: data.email,
+      password: data.password,
+      role: data.role,
+      phone: data.phone,
       isActive: true,
     })
 
     // Generate token
-    const token = await User.accessTokens.create(user, ['*'], {
-      expiresIn: '30days'
-    })
+    const token = await User.accessTokens.create(user)
 
     return response.created({
       message: 'Account created successfully',
@@ -53,19 +86,18 @@ export default class AuthController {
 
   /**
    * Login user
-   * POST /auth/login
+   * POST /api/auth/login
    */
   async login({ request, response }: HttpContext) {
-    const { email, password } = request.body()
+    // Validate input first
+    const data = await request.validateUsing(loginValidator)
 
-    try{
+    try {
       // Find user by email and verify password
-      const user = await User.verifyCredentials(email, password)
+      const user = await User.verifyCredentials(data.email, data.password)
 
-      // Generate token wtih expiry
-      const token = await User.accessTokens.create(user, ['*'], {
-        expiresIn: '30days'
-      })
+      // Generate token
+      const token = await User.accessTokens.create(user)
 
       return response.ok({
         message: 'Login successful',
@@ -79,17 +111,17 @@ export default class AuthController {
         token: token.value!.release(),
       })
     } catch (error) {
-      //Return same message for wrong email or wrong password
-      //This prevents attackers from knowing which field is wrong
+      // Return same message for wrong email or wrong password
+      // This prevents attackers from knowing which field is wrong
       return response.unauthorized({
         message: 'Invalid email or password'
       })
     }
-  }  
+  }
 
   /**
    * Logout user
-   * DELETE /auth/logout
+   * DELETE /api/auth/logout
    */
   async logout({ auth, response }: HttpContext) {
     const user = auth.user!
@@ -102,7 +134,7 @@ export default class AuthController {
 
   /**
    * Get current logged in user
-   * GET /auth/me
+   * GET /api/auth/me
    */
   async me({ auth, response }: HttpContext) {
     const user = auth.user!
@@ -119,38 +151,41 @@ export default class AuthController {
       }
     })
   }
+
   /**
-   * Forgot password - send reset email
+   * Forgot password — send reset email
    * POST /api/auth/forgot-password
    */
   async forgotPassword({ request, response }: HttpContext) {
-    const { email } = request.body()
+    // Validate input first
+    const data = await request.validateUsing(forgotPasswordValidator)
 
-    //find user by email
-    const user = await User.findBy('email', email)
+    // Find user by email
+    const user = await User.findBy('email', data.email)
 
-    //Always returns success even if email not found
-    //This prevents attackers from knowing which emails are registered
-    if (!user){
+    // Always return success even if email not found
+    // This prevents attackers from knowing which emails are registered
+    if (!user) {
       return response.ok({
         message: 'If an account exists with this email, you will receive a reset link shortly'
       })
     }
-    //Generate a random reset token
+
+    // Generate a random reset token
     const resetToken = string.generateRandom(64)
 
-    //Store the token and expiry in the user record
+    // Store the token and expiry in the user record
     user.passwordResetToken = resetToken
-    user.passwordResetExpiry = DateTime.now().plus({ minutes: 60 }) //1 hour
+    user.passwordResetExpiry = DateTime.now().plus({ hours: 1 })
     await user.save()
 
-    //Send reset email
+    // Send reset email
     const resetUrl = `http://localhost:3000/reset-password?token=${resetToken}`
 
     await mail.send((message) => {
       message
         .to(user.email)
-        .from('app@yourdomain.com')
+        .from('noreply@schedora.com')
         .subject('Reset your Schedora password')
         .html(`
           <h2>Reset Your Password</h2>
@@ -161,6 +196,7 @@ export default class AuthController {
           <p>If you didn't request this, ignore this email.</p>
         `)
     })
+
     return response.ok({
       message: 'If an account exists with this email, you will receive a reset link shortly'
     })
@@ -171,12 +207,13 @@ export default class AuthController {
    * POST /api/auth/reset-password
    */
   async resetPassword({ request, response }: HttpContext) {
-    const { token, password } = request.body()
+    // Validate input first
+    const data = await request.validateUsing(resetPasswordValidator)
 
     // Find user by reset token
-    const user = await User.findBy('passwordResetToken', token)
-    
-    //Check if token is valid
+    const user = await User.findBy('passwordResetToken', data.token)
+
+    // Check if token is valid
     if (!user) {
       return response.badRequest({
         message: 'Invalid or expired reset token'
@@ -191,7 +228,7 @@ export default class AuthController {
     }
 
     // Update password
-    user.password = await hash.make(password)
+    user.password = await hash.make(data.password)
     user.passwordResetToken = null
     user.passwordResetExpiry = null
     await user.save()
