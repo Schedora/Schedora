@@ -4,12 +4,37 @@ import User from '#models/user'
 import mail from '@adonisjs/mail/services/main'
 import string from '@adonisjs/core/helpers/string'
 import { DateTime } from 'luxon'
+import vine from '@vinejs/vine'
 
+/*
+|--------------------------------------------------------------------------
+| Validators
+|--------------------------------------------------------------------------
+*/
+const createStaffValidator = vine.compile(
+  vine.object({
+    full_name: vine.string().minLength(2).maxLength(100),
+    email: vine.string().email().normalizeEmail(),
+    role: vine.string().minLength(2).maxLength(50),
+    branch_id: vine.number().optional(),
+    specialties: vine.array(vine.string()).optional(),
+  })
+)
+
+const updateStaffValidator = vine.compile(
+  vine.object({
+    full_name: vine.string().minLength(2).maxLength(100).optional(),
+    role: vine.string().minLength(2).maxLength(50).optional(),
+    branch_id: vine.number().optional(),
+    specialties: vine.array(vine.string()).optional(),
+    status: vine.enum(['active', 'inactive', 'pending']).optional(),
+  })
+)
 
 export default class StaffController {
   /**
    * Get all staff for a business
-   * Get /api/business/:id/staff
+   * GET /api/business/:id/staff
    */
   async index({ params, response }: HttpContext) {
     const staff = await Staff.query()
@@ -26,12 +51,12 @@ export default class StaffController {
         status: s.status,
         branch_id: s.branchId,
       })),
-    })  
+    })
   }
 
   /**
    * Get individual staff profile
-   * Get /api/business/:id/staff/staffId
+   * GET /api/business/:id/staff/:staffId
    */
   async show({ params, response }: HttpContext) {
     const staff = await Staff.query()
@@ -50,7 +75,7 @@ export default class StaffController {
         status: staff.status,
         branch_id: staff.branchId,
       },
-    })  
+    })
   }
 
   /**
@@ -58,29 +83,30 @@ export default class StaffController {
    * POST /api/business/:id/staff
    */
   async store({ params, request, response }: HttpContext) {
-    const { full_name, email, role, branch_id, specialties } = request.body()
+    // Validate input first
+    const data = await request.validateUsing(createStaffValidator)
 
-    //Check if user already exists
-    let user = await User.findBy('email', email)
+    // Check if user already exists
+    let user = await User.findBy('email', data.email)
 
     if (!user) {
-      //Create new user account for staff
+      // Create new user account for staff
       user = await User.create({
-        fullName: full_name,
-        email,
+        fullName: data.full_name,
+        email: data.email,
         password: string.generateRandom(16),
         role: 'staff',
         isActive: false,
       })
     }
 
-    //Create staff record
+    // Create staff record
     const staff = await Staff.create({
       userId: user.id,
       businessId: params.id,
-      branchId: branch_id || null,
-      role: role || 'staff',
-      specialties: specialties || [],
+      branchId: data.branch_id || null,
+      role: data.role || 'staff',
+      specialties: data.specialties || [],
       status: 'pending',
     })
 
@@ -89,7 +115,7 @@ export default class StaffController {
       staff: {
         id: staff.id,
         full_name: user.fullName,
-        email:user.email,
+        email: user.email,
         role: staff.role,
         status: staff.status,
       },
@@ -107,20 +133,20 @@ export default class StaffController {
       .preload('user')
       .firstOrFail()
 
-    //Generate invite token
+    // Generate invite token
     const inviteToken = string.generateRandom(64)
-    
-    //Save token to user
+
+    // Save token to user
     staff.user.passwordResetToken = inviteToken
-    staff.user.passwordResetExpiry = DateTime.now().plus({ days: 7 }) // 7 days
+    staff.user.passwordResetExpiry = DateTime.now().plus({ days: 7 })
     await staff.user.save()
 
-    //Update status to pending
+    // Update status to pending
     staff.status = 'pending'
     await staff.save()
 
-    //Send invite email
-    const inviteUrl = `http://localhost:300/staff/setup?token=${inviteToken}`
+    // Send invite email
+    const inviteUrl = `http://localhost:3000/staff/setup?token=${inviteToken}`
 
     await mail.send((message) => {
       message
@@ -130,10 +156,10 @@ export default class StaffController {
         .html(`
           <h2>You're invited to Schedora!</h2>
           <p>Hi ${staff.user.fullName},</p>
-          <p>You have been ivited to join a business on Schedora.>/p>
+          <p>You have been invited to join a business on Schedora.</p>
           <p>Click the link below to set up your account:</p>
-          <a href="${inviteUrl}">Accept Invitation>/a>
-          <p>This link expires in 7 days.>/p>
+          <a href="${inviteUrl}">Accept Invitation</a>
+          <p>This link expires in 7 days.</p>
         `)
     })
 
@@ -153,19 +179,20 @@ export default class StaffController {
       .preload('user')
       .firstOrFail()
 
-    const{ full_name, role, branch_id, specialties, status } = request.body()
-    
+    // Validate input first
+    const data = await request.validateUsing(updateStaffValidator)
+
     // Update user details
-    if (full_name) {
-      staff.user.fullName = full_name
+    if (data.full_name) {
+      staff.user.fullName = data.full_name
       await staff.user.save()
     }
 
-    //Update staff details 
-    staff.role = role || staff.role
-    staff.branchId = branch_id || staff.branchId
-    staff.specialties = specialties || staff.specialties
-    staff.status = status || staff.status
+    // Update staff details
+    staff.role = data.role || staff.role
+    staff.branchId = data.branch_id || staff.branchId
+    staff.specialties = data.specialties || staff.specialties
+    staff.status = data.status || staff.status
     await staff.save()
 
     return response.ok({
@@ -186,14 +213,14 @@ export default class StaffController {
    * Remove staff member
    * DELETE /api/business/:id/staff/:staffId
    */
-  async destroy({ params, response }: HttpContext){
+  async destroy({ params, response }: HttpContext) {
     const staff = await Staff.query()
       .where('id', params.staffId)
       .where('business_id', params.id)
       .firstOrFail()
 
     await staff.delete()
-    
+
     return response.ok({
       message: 'Staff member removed successfully'
     })
@@ -203,9 +230,7 @@ export default class StaffController {
    * Get available staff for booking
    * GET /api/business/:id/staff/available
    */
-  async available({ params, request, response }: HttpContext) {
-    const { date: _date, time: _time } = request.qs()
-
+  async available({ params, response }: HttpContext) {
     const staff = await Staff.query()
       .where('business_id', params.id)
       .where('status', 'active')
@@ -218,6 +243,6 @@ export default class StaffController {
         role: s.role,
         specialties: s.specialties,
       })),
-    })  
+    })
   }
 }
