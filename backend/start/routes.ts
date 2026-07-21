@@ -138,7 +138,7 @@ router
 
 /*
 |--------------------------------------------------------------------------
-| Staff Availability API — Protected (login required)
+| Staff Availability API 
 |--------------------------------------------------------------------------
 */
 router
@@ -193,24 +193,22 @@ router
 
 /*
 |--------------------------------------------------------------------------
-| Attendance API — Protected (owner only)
+| Attendance API
 |--------------------------------------------------------------------------
 */
 router
   .group(() => {
     // Get full team attendance grid for a business
     // Owner uses this to see which staff are present or absent each week
-    // Get full team attendance grid for a business
     router.get('/businesses/:businessId/attendance', [AttendancesController, 'index'])
 
     // Get the team presence score for a business
     router.get('/businesses/:businessId/attendance/score', [AttendancesController, 'score'])
-
     // Get attendance summary — supports weekly and monthly view
     router.get('/businesses/:businessId/attendance/summary', [AttendancesController, 'summary'])
   })
   .prefix('/api')
-  .use([middleware.auth({ guards: ['api'] }), middleware.owner()])
+  .use(middleware.auth({ guards: ['api'] }))
 /*
 |--------------------------------------------------------------------------
 | Analytics & Reports API — Protected (owner only)
