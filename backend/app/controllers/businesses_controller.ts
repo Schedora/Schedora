@@ -2,6 +2,7 @@ import type { HttpContext } from '@adonisjs/core/http'
 import Business from '#models/business'
 import BusinessImage from '#models/business_image'
 import string from '@adonisjs/core/helpers/string'
+import { createBusinessValidator, updateBusinessValidator } from '#validators/business'
 
 /**
  * BusinessesController
@@ -57,8 +58,10 @@ export default class BusinessesController {
     // Get the currently logged in owner
     const owner = auth.getUserOrFail()
 
-    // Get the data sent in the request body
-    const data = request.only(['name', 'category', 'description', 'booking_policy'])
+    // Validate the request data before saving
+    // This ensures name, category and booking_policy are present and valid
+    // If validation fails VineJS automatically returns a 422 error with details
+    const data = await createBusinessValidator.validate(request.all())
 
     // Create the business and link it to the logged in owner
     const business = await Business.create({
@@ -93,8 +96,9 @@ export default class BusinessesController {
       })
     }
 
-    // Get only the fields we allow to be updated
-    const data = request.only(['name', 'category', 'description', 'booking_policy', 'is_active'])
+    // Validate the update data
+    // All fields are optional so the owner can update just one field at a time
+    const data = await updateBusinessValidator.validate(request.all())
 
     // Apply the updates
     business.merge({
@@ -102,7 +106,7 @@ export default class BusinessesController {
       category: data.category,
       description: data.description,
       bookingPolicy: data.booking_policy,
-      isActive: data.is_active,
+      isActive: data.is_active ?? business.isActive,
     })
 
     // Save the changes to the database
