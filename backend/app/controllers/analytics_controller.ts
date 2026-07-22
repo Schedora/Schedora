@@ -1,6 +1,12 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Business from '#models/business'
 import db from '@adonisjs/lucid/services/db'
+import {
+  revenueValidator,
+  transactionsValidator,
+  trendsValidator,
+  revenueByServiceValidator,
+} from '#validators/analytics'
 
 /**
  * AnalyticsController
@@ -37,7 +43,6 @@ export default class AnalyticsController {
     }
 
     // Total revenue — sum of all completed bookings
-    // We join bookings with services to get the price of each booking
     const revenueResult = await db.rawQuery(
       `
       SELECT COALESCE(SUM(s.price), 0) as total_revenue
@@ -65,7 +70,7 @@ export default class AnalyticsController {
 
     const bookingsToday = parseInt(bookingsTodayResult.rows[0].total)
 
-    // Total bookings all time — used to calculate capacity percentage
+    // Total bookings all time
     const totalBookingsResult = await db.rawQuery(
       `
       SELECT COUNT(*) as total
@@ -78,8 +83,7 @@ export default class AnalyticsController {
 
     const totalBookings = parseInt(totalBookingsResult.rows[0].total)
 
-    // Pending reviews — reviews that have not been responded to yet
-    // For now we count all reviews as pending response
+    // Pending reviews count
     const pendingReviewsResult = await db.rawQuery(
       `
       SELECT COUNT(*) as total
@@ -91,7 +95,7 @@ export default class AnalyticsController {
 
     const pendingReviews = parseInt(pendingReviewsResult.rows[0].total)
 
-    // Average rating — average of all staff and business ratings combined
+    // Average rating
     const avgRatingResult = await db.rawQuery(
       `
       SELECT
@@ -120,7 +124,6 @@ export default class AnalyticsController {
    * GET /api/analytics/:businessId/revenue
    * Returns weekly or monthly revenue broken down by day
    * Shows Completed vs Pending split
-   * Used for the Revenue Trends chart on the dashboard
    */
   async revenue({ params, request, response, auth }: HttpContext) {
     const owner = await auth.authenticate()
@@ -132,8 +135,9 @@ export default class AnalyticsController {
       })
     }
 
-    // Get the view type — 7 days or 30 days
-    const days = parseInt(request.qs().days || '7')
+    // Validate query string parameters
+    const { days } = await revenueValidator.validate(request.qs())
+    const daysCount = days || 7
 
     const revenueResult = await db.rawQuery(
       `
@@ -146,14 +150,13 @@ export default class AnalyticsController {
       JOIN services s ON b.service_id = s.id
       JOIN branches br ON b.branch_id = br.id
       WHERE br.business_id = ?
-        AND b.date >= CURRENT_DATE - INTERVAL '${days} days'
+        AND b.date >= CURRENT_DATE - INTERVAL '${daysCount} days'
       GROUP BY b.date
       ORDER BY b.date ASC
     `,
       [params.businessId]
     )
 
-    // Total completed and pending for the period
     const totalsResult = await db.rawQuery(
       `
       SELECT
@@ -164,7 +167,7 @@ export default class AnalyticsController {
       JOIN services s ON b.service_id = s.id
       JOIN branches br ON b.branch_id = br.id
       WHERE br.business_id = ?
-        AND b.date >= CURRENT_DATE - INTERVAL '${days} days'
+        AND b.date >= CURRENT_DATE - INTERVAL '${daysCount} days'
     `,
       [params.businessId]
     )
@@ -178,7 +181,7 @@ export default class AnalyticsController {
           pending: parseFloat(totalsResult.rows[0].total_pending),
           transactions: parseInt(totalsResult.rows[0].total_transactions),
         },
-        days,
+        days: daysCount,
       },
     })
   }
@@ -186,8 +189,6 @@ export default class AnalyticsController {
   /**
    * GET /api/analytics/:businessId/revenue/transactions
    * Returns a paginated list of all transactions
-   * Owner can filter by status — completed, pending, cancelled
-   * Used on the Revenue page Recent Transactions table
    */
   async transactions({ params, request, response, auth }: HttpContext) {
     const owner = await auth.authenticate()
@@ -199,11 +200,11 @@ export default class AnalyticsController {
       })
     }
 
-    // Get pagination and filter params
-    const page = parseInt(request.qs().page || '1')
-    const limit = parseInt(request.qs().limit || '10')
-    const status = request.qs().status
-    const offset = (page - 1) * limit
+    // Validate query string parameters
+    const { page, limit, status } = await transactionsValidator.validate(request.qs())
+    const pageNum = page || 1
+    const limitNum = limit || 10
+    const offset = (pageNum - 1) * limitNum
 
     // Build the where clause
     let whereClause = 'WHERE br.business_id = ?'
@@ -214,7 +215,6 @@ export default class AnalyticsController {
       queryParams.push(status)
     }
 
-    // Get transactions with customer name and service details
     const transactions = await db.rawQuery(
       `
       SELECT
@@ -234,10 +234,9 @@ export default class AnalyticsController {
       ORDER BY b.date DESC, b.time DESC
       LIMIT ? OFFSET ?
     `,
-      [...queryParams, limit, offset]
+      [...queryParams, limitNum, offset]
     )
 
-    // Get total count for pagination
     const countResult = await db.rawQuery(
       `
       SELECT COUNT(*) as total
@@ -249,15 +248,15 @@ export default class AnalyticsController {
     )
 
     const total = parseInt(countResult.rows[0].total)
-    const totalPages = Math.ceil(total / limit)
+    const totalPages = Math.ceil(total / limitNum)
 
     return response.ok({
       message: 'Transactions fetched successfully',
       data: {
         transactions: transactions.rows,
         pagination: {
-          page,
-          limit,
+          page: pageNum,
+          limit: limitNum,
           total,
           totalPages,
         },
@@ -267,8 +266,7 @@ export default class AnalyticsController {
 
   /**
    * GET /api/analytics/:businessId/revenue/trends
-   * Returns daily revenue with trend direction (up or down)
-   * Used in the Recent Performance Data table on the Trends page
+   * Returns daily revenue with trend direction
    */
   async trends({ params, request, response, auth }: HttpContext) {
     const owner = await auth.authenticate()
@@ -280,7 +278,9 @@ export default class AnalyticsController {
       })
     }
 
-    const days = parseInt(request.qs().days || '30')
+    // Validate query string parameters
+    const { days } = await trendsValidator.validate(request.qs())
+    const daysCount = days || 30
 
     const trendsResult = await db.rawQuery(
       `
@@ -293,15 +293,13 @@ export default class AnalyticsController {
       JOIN services s ON b.service_id = s.id
       JOIN branches br ON b.branch_id = br.id
       WHERE br.business_id = ?
-        AND b.date >= CURRENT_DATE - INTERVAL '${days} days'
+        AND b.date >= CURRENT_DATE - INTERVAL '${daysCount} days'
       GROUP BY b.date
       ORDER BY b.date DESC
     `,
       [params.businessId]
     )
 
-    // Calculate trend direction for each day
-    // Compare each day's revenue to the previous day
     const rows = trendsResult.rows
     const trendsWithDirection = rows.map((row: any, index: number) => {
       const prevRow = rows[index + 1]
@@ -337,7 +335,6 @@ export default class AnalyticsController {
   /**
    * GET /api/analytics/:businessId/revenue/by-service
    * Returns revenue broken down by service type
-   * Used in the Revenue by Service panel on the Trends page
    */
   async revenueByService({ params, request, response, auth }: HttpContext) {
     const owner = await auth.authenticate()
@@ -349,7 +346,9 @@ export default class AnalyticsController {
       })
     }
 
-    const days = parseInt(request.qs().days || '30')
+    // Validate query string parameters
+    const { days } = await revenueByServiceValidator.validate(request.qs())
+    const daysCount = days || 30
 
     const result = await db.rawQuery(
       `
@@ -363,7 +362,7 @@ export default class AnalyticsController {
       JOIN branches br ON b.branch_id = br.id
       WHERE br.business_id = ?
         AND b.status = 'completed'
-        AND b.date >= CURRENT_DATE - INTERVAL '${days} days'
+        AND b.date >= CURRENT_DATE - INTERVAL '${daysCount} days'
       GROUP BY s.id, s.name, s.category
       ORDER BY total_revenue DESC
     `,
@@ -379,7 +378,6 @@ export default class AnalyticsController {
   /**
    * GET /api/analytics/:businessId/staff/performance
    * Returns each staff member's ratings, completed and pending booking counts
-   * Used in the Staff Performance panel on the owner dashboard
    */
   async staffPerformance({ params, response, auth }: HttpContext) {
     const owner = await auth.authenticate()
@@ -429,8 +427,8 @@ export default class AnalyticsController {
   }
 
   /**
-   * Used in the Revenue Distribution panel on the owner dashboard
-   * e.g. Direct Consultations $12,240 · Subscription Packs $8,400
+   * GET /api/analytics/:businessId/staff/distribution
+   * Returns revenue distribution broken down by service category
    */
   async revenueDistribution({ params, response, auth }: HttpContext) {
     const owner = await auth.authenticate()
