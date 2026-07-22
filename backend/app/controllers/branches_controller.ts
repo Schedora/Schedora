@@ -1,6 +1,7 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Business from '#models/business'
 import Branch from '#models/branch'
+import { createBranchValidator, updateBranchValidator } from '#validators/branch'
 
 export default class BranchesController {
   // POST /businesses/:id/branches — add a new branch
@@ -8,8 +9,9 @@ export default class BranchesController {
     // Make sure the business exists before adding a branch
     const business = await Business.findOrFail(params.id)
 
-    // Only pick the fields we expect — ignore anything extra sent in the request
-    const data = request.only(['name', 'address', 'phone', 'manager'])
+    // Validate the request data before saving
+    // Ensures name, address, phone and manager are present and valid
+    const data = await createBranchValidator.validate(request.all())
 
     // Count existing branches for this business
     const existingCount = await Branch.query().where('business_id', business.id).count('* as total')
@@ -48,8 +50,8 @@ export default class BranchesController {
       .where('business_id', params.id)
       .firstOrFail()
 
-    // Only allow updating these fields
-    const data = request.only(['branch_name', 'address', 'phone', 'manager', 'is_active'])
+    // Validate the update data — all fields are optional
+    const data = await updateBranchValidator.validate(request.all())
 
     branch.merge(data)
     await branch.save()
