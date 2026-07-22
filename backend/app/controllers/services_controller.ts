@@ -1,6 +1,7 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Service from '#models/service'
 import Business from '#models/business'
+import { createServiceValidator, updateServiceValidator } from '#validators/service'
 
 /**
  * ServicesController
@@ -50,8 +51,9 @@ export default class ServicesController {
       })
     }
 
-    // Get the service details from the request body
-    const data = request.only(['name', 'duration', 'price', 'category', 'description'])
+    // Validate the request data before saving
+    // Ensures name, duration, price and category are present and valid
+    const data = await createServiceValidator.validate(request.all())
 
     // Create the service and link it to this business
     const service = await Service.create({
@@ -98,8 +100,8 @@ export default class ServicesController {
       })
     }
 
-    // Get only the fields we allow to be updated
-    const data = request.only(['name', 'duration', 'price', 'category', 'description', 'is_active'])
+    // Validate the update data — all fields are optional
+    const data = await updateServiceValidator.validate(request.all())
 
     // Apply the updates to the service record
     service.merge({
@@ -108,7 +110,7 @@ export default class ServicesController {
       price: data.price,
       category: data.category,
       description: data.description,
-      isActive: data.is_active,
+      isActive: data.is_active ?? service.isActive,
     })
 
     // Save the changes to the database

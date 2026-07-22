@@ -1,6 +1,7 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Attendance from '#models/attendance'
 import Staff from '#models/staff'
+import { createAvailabilityValidator, updateAvailabilityValidator } from '#validators/availability'
 
 /**
  * AvailabilityController
@@ -57,14 +58,9 @@ export default class AvailabilityController {
       })
     }
 
-    // Get the availability data from the request body
-    const data = request.only([
-      'week_start',
-      'week_end',
-      'available_days',
-      'start_time',
-      'end_time',
-    ])
+    // Validate the request data before saving
+    // Ensures week dates, available days and working hours are present and valid
+    const data = await createAvailabilityValidator.validate(request.all())
 
     // Enforce the 7-day rule
     const weekStart = new Date(data.week_start)
@@ -144,8 +140,8 @@ export default class AvailabilityController {
       })
     }
 
-    // Get the updated data
-    const data = request.only(['available_days', 'start_time', 'end_time'])
+    // Validate the update data — all fields are optional
+    const data = await updateAvailabilityValidator.validate(request.all())
 
     // Apply updates
     attendance.merge({

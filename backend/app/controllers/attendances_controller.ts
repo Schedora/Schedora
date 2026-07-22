@@ -2,6 +2,11 @@ import type { HttpContext } from '@adonisjs/core/http'
 import Attendance from '#models/attendance'
 import Staff from '#models/staff'
 import Business from '#models/business'
+import {
+  getAttendanceValidator,
+  getAttendanceScoreValidator,
+  getAttendanceSummaryValidator,
+} from '#validators/attendance'
 
 /**
  * AttendancesController
@@ -36,7 +41,8 @@ export default class AttendancesController {
       })
     }
 
-    const week = request.qs().week
+    // Validate query string parameters
+    const { week } = await getAttendanceValidator.validate(request.qs())
     const staff = await Staff.query().where('business_id', business.id)
     const staffIds = staff.map((s) => s.id)
 
@@ -68,7 +74,9 @@ export default class AttendancesController {
       })
     }
 
-    const week = request.qs().week || new Date().toISOString().split('T')[0]
+    // Validate query string parameters
+    const params_data = await getAttendanceScoreValidator.validate(request.qs())
+    const week = params_data.week || new Date().toISOString().split('T')[0]
     const staff = await Staff.query().where('business_id', business.id)
     const staffIds = staff.map((s) => s.id)
     const totalStaff = staff.length
@@ -109,8 +117,9 @@ export default class AttendancesController {
       })
     }
 
-    const view = request.qs().view || 'weekly'
-    const week = request.qs().week
+    // Validate query string parameters
+    const { view, week } = await getAttendanceSummaryValidator.validate(request.qs())
+    const viewType = view || 'weekly'
 
     const staff = await Staff.query().where('business_id', business.id)
     const staffIds = staff.map((s) => s.id)
@@ -135,7 +144,7 @@ export default class AttendancesController {
       startTime: record.startTime,
       endTime: record.endTime,
       daysAvailable: record.availableDays.length,
-      view,
+      view: viewType,
     }))
 
     return response.ok({
