@@ -54,7 +54,7 @@ export default class AnalyticsController {
       [params.businessId]
     )
 
-    const totalRevenue = parseFloat(revenueResult.rows[0].total_revenue)
+    const totalRevenue = Number.parseFloat(revenueResult.rows[0].total_revenue)
 
     // Total bookings today
     const today = new Date().toISOString().split('T')[0]
@@ -68,7 +68,7 @@ export default class AnalyticsController {
       [params.businessId, today]
     )
 
-    const bookingsToday = parseInt(bookingsTodayResult.rows[0].total)
+    const bookingsToday = Number.parseInt(bookingsTodayResult.rows[0].total)
 
     // Total bookings all time
     const totalBookingsResult = await db.rawQuery(
@@ -81,7 +81,7 @@ export default class AnalyticsController {
       [params.businessId]
     )
 
-    const totalBookings = parseInt(totalBookingsResult.rows[0].total)
+    const totalBookings = Number.parseInt(totalBookingsResult.rows[0].total)
 
     // Pending reviews count
     const pendingReviewsResult = await db.rawQuery(
@@ -93,7 +93,7 @@ export default class AnalyticsController {
       [params.businessId]
     )
 
-    const pendingReviews = parseInt(pendingReviewsResult.rows[0].total)
+    const pendingReviews = Number.parseInt(pendingReviewsResult.rows[0].total)
 
     // Average rating
     const avgRatingResult = await db.rawQuery(
@@ -106,7 +106,7 @@ export default class AnalyticsController {
       [params.businessId]
     )
 
-    const avgRating = parseFloat(avgRatingResult.rows[0].avg_rating).toFixed(1)
+    const avgRating = Number.parseFloat(avgRatingResult.rows[0].avg_rating).toFixed(1)
 
     return response.ok({
       message: 'Overview analytics fetched successfully',
@@ -115,7 +115,7 @@ export default class AnalyticsController {
         bookingsToday,
         totalBookings,
         pendingReviews,
-        avgRating: parseFloat(avgRating),
+        avgRating: Number.parseFloat(avgRating),
       },
     })
   }
@@ -177,9 +177,9 @@ export default class AnalyticsController {
       data: {
         chart: revenueResult.rows,
         totals: {
-          completed: parseFloat(totalsResult.rows[0].total_completed),
-          pending: parseFloat(totalsResult.rows[0].total_pending),
-          transactions: parseInt(totalsResult.rows[0].total_transactions),
+          completed: Number.parseFloat(totalsResult.rows[0].total_completed),
+          pending: Number.parseFloat(totalsResult.rows[0].total_pending),
+          transactions: Number.parseInt(totalsResult.rows[0].total_transactions),
         },
         days: daysCount,
       },
@@ -247,7 +247,7 @@ export default class AnalyticsController {
       queryParams
     )
 
-    const total = parseInt(countResult.rows[0].total)
+    const total = Number.parseInt(countResult.rows[0].total)
     const totalPages = Math.ceil(total / limitNum)
 
     return response.ok({
@@ -307,8 +307,8 @@ export default class AnalyticsController {
       let trendDirection = 'neutral'
 
       if (prevRow) {
-        const current = parseFloat(row.completed_revenue)
-        const previous = parseFloat(prevRow.completed_revenue)
+        const current = Number.parseFloat(row.completed_revenue)
+        const previous = Number.parseFloat(prevRow.completed_revenue)
 
         if (previous > 0) {
           trendPercent = ((current - previous) / previous) * 100
@@ -318,10 +318,10 @@ export default class AnalyticsController {
 
       return {
         date: row.date,
-        completedRevenue: parseFloat(row.completed_revenue),
-        pendingRevenue: parseFloat(row.pending_revenue),
-        bookingCount: parseInt(row.booking_count),
-        trendPercent: parseFloat(trendPercent.toFixed(1)),
+        completedRevenue: Number.parseFloat(row.completed_revenue),
+        pendingRevenue: Number.parseFloat(row.pending_revenue),
+        bookingCount: Number.parseInt(row.booking_count),
+        trendPercent: Number.parseFloat(trendPercent.toFixed(1)),
         trendDirection,
       }
     })
@@ -417,11 +417,11 @@ export default class AnalyticsController {
         staffId: row.staff_id,
         name: row.full_name,
         role: row.role,
-        completedCount: parseInt(row.completed_count),
-        pendingCount: parseInt(row.pending_count),
-        totalBookings: parseInt(row.total_bookings),
-        avgRating: parseFloat(parseFloat(row.avg_rating).toFixed(1)),
-        reviewCount: parseInt(row.review_count),
+        completedCount: Number.parseInt(row.completed_count),
+        pendingCount: Number.parseInt(row.pending_count),
+        totalBookings: Number.parseInt(row.total_bookings),
+        avgRating: Number.parseFloat(Number.parseFloat(row.avg_rating).toFixed(1)),
+        reviewCount: Number.parseInt(row.review_count),
       })),
     })
   }
@@ -461,8 +461,8 @@ export default class AnalyticsController {
       message: 'Revenue distribution fetched successfully',
       data: result.rows.map((row: any) => ({
         category: row.category,
-        totalRevenue: parseFloat(row.total_revenue),
-        bookingCount: parseInt(row.booking_count),
+        totalRevenue: Number.parseFloat(row.total_revenue),
+        bookingCount: Number.parseInt(row.booking_count),
       })),
     })
   }
