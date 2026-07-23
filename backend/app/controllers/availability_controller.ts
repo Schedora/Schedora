@@ -2,6 +2,7 @@ import type { HttpContext } from '@adonisjs/core/http'
 import Attendance from '#models/attendance'
 import Staff from '#models/staff'
 import { createAvailabilityValidator, updateAvailabilityValidator } from '#validators/availability'
+import { DateTime } from 'luxon'
 
 /**
  * AvailabilityController
@@ -81,12 +82,12 @@ export default class AvailabilityController {
 
     if (existing) {
       // Update existing record
-      existing.merge({
-        weekEnd: data.week_end,
-        availableDays: data.available_days,
-        startTime: data.start_time,
-        endTime: data.end_time,
-      })
+    existing.merge({
+      weekEnd: DateTime.fromJSDate(new Date(data.week_end)),
+      availableDays: data.available_days,
+      startTime: data.start_time,
+      endTime: data.end_time,
+    })
       await existing.save()
 
       return response.ok({
@@ -98,12 +99,12 @@ export default class AvailabilityController {
     // Create new availability record
     const attendance = await Attendance.create({
       staffId: staff.id,
-      weekStart: data.week_start,
-      weekEnd: data.week_end,
+      weekStart: DateTime.fromJSDate(new Date(data.week_start)),
+      weekEnd: DateTime.fromJSDate(new Date(data.week_end)),
       availableDays: data.available_days,
       startTime: data.start_time,
       endTime: data.end_time,
-    })
+})
 
     return response.created({
       message: 'Availability submitted successfully',
@@ -163,7 +164,7 @@ export default class AvailabilityController {
    * Returns available booking slots for a business on a specific date
    * Used by the customer booking form to show available dates and times
    */
-  async availableSlots({ params, request, response }: HttpContext) {
+  async availableSlots({ request, response }: HttpContext) {
     // Get date and duration from query string
     const date = request.qs().date
     const duration = parseInt(request.qs().duration || '30')

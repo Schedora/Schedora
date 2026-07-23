@@ -64,7 +64,8 @@
     "edge.js": "^6.0.2",
     "luxon": "^3.4.4",
     "pg": "^8.11.3",
-    "reflect-metadata": "^0.2.1"
+    "reflect-metadata": "^0.2.1",
+    "vite": "^8.1.5"
   },
   "prettier": "@adonisjs/prettier-config",
   "compilerOptions": {
