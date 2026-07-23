@@ -20,10 +20,13 @@ export default class BranchesController {
     const isFirst = Number(existingCount[0].$extras.total) === 0
 
     const branch = await Branch.create({
-      ...data,
+      name: data.name,
+      address: data.address,
+      phone: data.phone,
+      manager: data.manager,
       businessId: business.id,
       isPrimary: isFirst,
-      isActive: true, // new branches are active by default
+      isActive: true,
     })
 
     return response.created({ data: branch })
