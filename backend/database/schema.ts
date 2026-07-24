@@ -186,6 +186,17 @@ export class NotificationSchema extends BaseModel {
   declare userId: number | null
 }
 
+export class RateLimitSchema extends BaseModel {
+  static $columns = ['expire', 'key', 'points'] as const
+  $columns = RateLimitSchema.$columns
+  @column()
+  declare expire: bigint | number | null
+  @column({ isPrimary: true })
+  declare key: string
+  @column()
+  declare points: number
+}
+
 export class ReviewSchema extends BaseModel {
   static $columns = ['bookingId', 'businessId', 'businessRating', 'comment', 'createdAt', 'customerId', 'helpfulCount', 'id', 'isFlagged', 'rating', 'response', 'staffId', 'staffRating', 'updatedAt'] as const
   $columns = ReviewSchema.$columns

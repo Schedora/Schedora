@@ -9,6 +9,16 @@
 
 import { middleware } from '#start/kernel'
 import router from '@adonisjs/core/services/router'
+import {
+  authThrottle,
+  throttle,
+  bookingThrottle,
+  reviewThrottle,
+  staffThrottle,
+  availabilityThrottle,
+  publicThrottle,
+
+ } from '#start/limiter'
 
 const BranchesController = () => import('#controllers/branches_controller')
 const AuthController = () => import('#controllers/auth_controller')
@@ -41,6 +51,7 @@ router
     router.post('/reset_password', [AuthController, 'resetPassword'])
   })
   .prefix('/api/auth')
+  .use(authThrottle)
 
 /*
 |--------------------------------------------------------------------------
@@ -56,7 +67,7 @@ router
     router.get('/me', [AuthController, 'me'])
   })
   .prefix('/api/auth')
-  .use(middleware.auth({ guards: ['api'] }))
+  .use([middleware.auth({ guards: ['api'] }), throttle])
 
 /*
 |--------------------------------------------------------------------------
@@ -64,10 +75,10 @@ router
 |--------------------------------------------------------------------------
 */
 // Returns all active businesses — filterable by category
-router.get('/api/businesses', [BusinessesController, 'index'])
+router.get('/api/businesses', [BusinessesController, 'index']).use(publicThrottle)
 
 // Returns a single business by ID
-router.get('/api/businesses/:id', [BusinessesController, 'show'])
+router.get('/api/businesses/:id', [BusinessesController, 'show']).use(publicThrottle)
 
 /*
 |--------------------------------------------------------------------------
@@ -134,7 +145,7 @@ router
     router.delete('/businesses/:id/services/:serviceId', [ServicesController, 'destroy'])
   })
   .prefix('/api')
-  .use([middleware.auth({ guards: ['api'] }), middleware.owner()])
+  .use([middleware.auth({ guards: ['api'] }), middleware.owner(), throttle])
 
 /*
 |--------------------------------------------------------------------------
@@ -159,7 +170,7 @@ router
     ])
   })
   .prefix('/api')
-  .use(middleware.auth({ guards: ['api'] }))
+  .use([middleware.auth({ guards: ['api'] }), availabilityThrottle])
 /*
 |--------------------------------------------------------------------------
 | Staff Routes — Protected (owner only)
@@ -189,7 +200,7 @@ router
     router.delete('/business/:id/staff/:staffId', [StaffController, 'destroy'])
   })
   .prefix('/api')
-  .use([middleware.auth({ guards: ['api'] }), middleware.owner()])
+  .use([middleware.auth({ guards: ['api'] }), middleware.owner(), staffThrottle])
 
 /*
 |--------------------------------------------------------------------------
@@ -208,7 +219,7 @@ router
     router.get('/businesses/:businessId/attendance/summary', [AttendancesController, 'summary'])
   })
   .prefix('/api')
-  .use(middleware.auth({ guards: ['api'] }))
+  .use([middleware.auth({ guards: ['api'] }), throttle])
 /*
 |--------------------------------------------------------------------------
 | Analytics & Reports API — Protected (owner only)
@@ -247,7 +258,7 @@ router
     ])
   })
   .prefix('/api')
-  .use([middleware.auth({ guards: ['api'] }), middleware.owner()])
+  .use([middleware.auth({ guards: ['api'] }), middleware.owner(), throttle])
 
 /*
 |--------------------------------------------------------------------------
@@ -281,7 +292,7 @@ router
     router.post('/bookings/walkin', [BookingController, 'walkIn'])
   })
   .prefix('/api')
-  .use(middleware.auth({ guards: ['api'] }))
+  .use([middleware.auth({ guards: ['api'] }), bookingThrottle])
 /*
 |--------------------------------------------------------------------------
 | Notification Routes — Protected (login required)
@@ -299,7 +310,7 @@ router
     router.put('/notifications/staff/:id/read-all', [NotificationController, 'markAllRead'])
   })
   .prefix('/api')
-  .use(middleware.auth({ guards: ['api'] }))
+  .use([middleware.auth({ guards: ['api'] }), throttle])
 
 const ReviewController = () => import('#controllers/reviews_controller')
 
@@ -329,4 +340,4 @@ router
     router.put('/reviews/:id/helpful', [ReviewController, 'helpful'])
   })
   .prefix('/api')
-  .use(middleware.auth({ guards: ['api'] }))
+  .use([middleware.auth({ guards: ['api'] }), reviewThrottle])
