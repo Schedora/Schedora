@@ -24,7 +24,8 @@ server.errorHandler(() => import('#exceptions/handler'))
  */
 server.use([
   () => import('#middleware/container_bindings_middleware'),
-  // Static and Vite middleware removed — this is an API-only backend
+  () => import('@adonisjs/cors/cors_middleware'),
+  () => import('@adonisjs/cors/cors_middleware')
 ])
 
 /**
