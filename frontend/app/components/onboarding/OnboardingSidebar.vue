@@ -72,7 +72,20 @@
                 />
               </svg>
               <!-- Step icon -->
-              <component v-else :is="step.icon" class="w-4 h-4" />
+              <svg
+                v-else
+                class="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  :d="step.icon"
+                />
+              </svg>
             </div>
             <span class="text-sm font-medium">{{ step.name }}</span>
           </div>
@@ -103,11 +116,31 @@ defineEmits(["finish-later"]);
 
 // The 5 onboarding steps
 const steps = [
-  { id: 1, name: "Business Info" },
-  { id: 2, name: "Location" },
-  { id: 3, name: "Services" },
-  { id: 4, name: "Staff" },
-  { id: 5, name: "Images" },
+  {
+    id: 1,
+    name: "Business Info",
+    icon: "M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4",
+  },
+  {
+    id: 2,
+    name: "Location",
+    icon: "M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0zM15 11a3 3 0 11-6 0 3 3 0 016 0z",
+  },
+  {
+    id: 3,
+    name: "Services",
+    icon: "M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121m0 5.758a3 3 0 10-4.243 4.243 3 3 0 004.243-4.243zm0-5.758a3 3 0 10-4.243-4.243 3 3 0 004.243 4.243z",
+  },
+  {
+    id: 4,
+    name: "Staff",
+    icon: "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z",
+  },
+  {
+    id: 5,
+    name: "Images",
+    icon: "M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z",
+  },
 ];
 
 // Calculate progress percentage based on current step
