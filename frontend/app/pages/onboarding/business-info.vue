@@ -261,9 +261,7 @@
       <footer
         class="border-t border-gray-200 px-8 py-4 flex justify-between items-center"
       >
-        <p class="text-xs text-gray-400">
-          © Schedora. Professional Booking Solutions.
-        </p>
+        <p class="text-xs text-gray-400">© Schedora. Professional Booking Solutions.</p>
         <div class="flex gap-4">
           <a href="#" class="text-xs text-gray-400 hover:text-gray-600"
             >Privacy Policy</a
