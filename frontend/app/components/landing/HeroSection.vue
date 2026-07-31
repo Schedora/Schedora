@@ -29,7 +29,7 @@
               Create Account
             </NuxtLink>
             <NuxtLink 
-              to="/auth/register?type=owner"
+              to="/auth/register-owner"
               class="border-2 border-blue-600 text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-colors text-center"
             >
               Register Your Business Now
