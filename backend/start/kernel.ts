@@ -25,9 +25,8 @@ server.errorHandler(() => import('#exceptions/handler'))
 server.use([
   () => import('#middleware/container_bindings_middleware'),
   () => import('@adonisjs/cors/cors_middleware'),
-  () => import('@adonisjs/cors/cors_middleware')
+  //() => import('@adonisjs/vite/vite_middleware'),
 ])
-
 /**
  * The router middleware stack runs middleware on all the HTTP
  * requests with a registered route.
