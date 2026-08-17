@@ -13,7 +13,10 @@ import vine from '@vinejs/vine'
 */
 const registerValidator = vine.compile(
   vine.object({
-    full_name: vine.string().minLength(2).maxLength(100),
+    full_name: vine
+      .string()
+      .trim()
+      .regex(/^\S+\s+\S+$/),
     email: vine.string().email().normalizeEmail(),
     password: vine.string().minLength(8),
     role: vine.enum(['customer', 'owner']),
