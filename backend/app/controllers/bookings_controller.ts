@@ -150,20 +150,27 @@ export default class BookingController {
   async byCustomer({ params, response }: HttpContext) {
     const bookings = await Booking.query()
       .where('customer_id', params.id)
-      .preload('staff')
+      .preload('staff', (staffQuery) => {
+        staffQuery.preload('user')
+      })
       .preload('service')
-      .preload('branch')
+      .preload('branch', (branchQuery) => {
+        branchQuery.preload('business')
+      })
       .orderBy('date', 'desc')
 
     return response.ok({
       bookings: bookings.map((b) => ({
         id: b.id,
         reference_number: b.referenceNumber,
-        staff_name: b.staff.user?.fullName,
-        service_name: b.service.name,
+        service_name: b.service?.name,
+        business_name: b.branch?.business?.name,
+        branch_name: b.branch?.name,
+        staff_name: b.staff?.user?.fullName,
         date: b.date,
         time: b.time,
         status: b.status,
+        notes: b.notes,
       })),
     })
   }
