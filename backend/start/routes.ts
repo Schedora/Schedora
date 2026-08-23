@@ -71,15 +71,21 @@ router
 
 /*
 |--------------------------------------------------------------------------
-| Business Routes — Public (no login required)
+| Public Routes — No login required
 |--------------------------------------------------------------------------
 */
-// Returns all active businesses — filterable by category
+// Public business routes
 router.get('/api/businesses', [BusinessesController, 'index']).use(publicThrottle)
-
-// Returns a single business by ID
 router.get('/api/businesses/:id', [BusinessesController, 'show']).use(publicThrottle)
 
+// Public branch route — customers need for booking
+router.get('/api/businesses/:id/branches', [BranchesController, 'index']).use(publicThrottle)
+
+// Public service route — customers need for booking
+router.get('/api/businesses/:id/services', [ServicesController, 'index']).use(publicThrottle)
+
+// Public staff available route — customers need for booking
+router.get('/api/business/:id/staff/available', [StaffController, 'available']).use(publicThrottle)
 /*
 |--------------------------------------------------------------------------
 | Business Routes — Protected (login required)
@@ -115,9 +121,6 @@ router
     // Add a new branch to a business
     router.post('/businesses/:id/branches', [BranchesController, 'store'])
 
-    // Get all branches for a business
-    router.get('/businesses/:id/branches', [BranchesController, 'index'])
-
     // Update a specific branch
     router.put('/businesses/:id/branches/:branchId', [BranchesController, 'update'])
 
@@ -127,10 +130,7 @@ router
     // ---------------------------------------------------------------
     // Service API
     // ---------------------------------------------------------------
-
-    // Get all active services for a business
-    // Used to populate the Service Type dropdown on the customer booking form
-    router.get('/businesses/:id/services', [ServicesController, 'index'])
+    
 
     // Add a new service to a business catalog
     // Called during onboarding and from the owner dashboard
@@ -146,6 +146,7 @@ router
   })
   .prefix('/api')
   .use([middleware.auth({ guards: ['api'] }), middleware.owner(), throttle])
+
 
 /*
 |--------------------------------------------------------------------------
@@ -181,9 +182,6 @@ router
     // Get all staff for a business
     router.get('/business/:id/staff', [StaffController, 'index'])
 
-    // Get available staff for booking
-    router.get('/business/:id/staff/available', [StaffController, 'available'])
-
     // Get individual staff profile
     router.get('/business/:id/staff/:staffId', [StaffController, 'show'])
 
@@ -201,6 +199,8 @@ router
   })
   .prefix('/api')
   .use([middleware.auth({ guards: ['api'] }), middleware.owner(), staffThrottle])
+
+
 
 /*
 |--------------------------------------------------------------------------
