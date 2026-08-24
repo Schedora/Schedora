@@ -104,7 +104,7 @@ Staff scheduling confusion is eliminated through dedicated schedule views, appoi
 
 | Layer | Technology |
 |---|---|
-| **Frontend** | Vue.js with Pico CSS |
+| **Frontend** | Vue.js with Tailwind CSS |
 | **Backend** | Node.js |
 | **Database** | PostgreSQL |
 | **Notifications** | SendGrid (email) + WebSocket (in-app) |
