@@ -8,6 +8,11 @@
       </div>
       <h1 class="text-2xl font-bold text-gray-900">Schedora</h1>
       <p class="text-gray-500 mt-1">Premium Appointment Management</p>
+      <!-- Dynamic heading based on role -->
+      <div class="text-center mt-4 mb-6">
+        <h2 class="text-xl font-bold text-gray-900">{{ headings[selectedRole].title }}</h2>
+        <p class="text-gray-500 text-sm mt-1">{{ headings[selectedRole].subtitle }}</p>
+      </div>
     </div>
 
     <!-- Card -->
@@ -111,17 +116,36 @@
           Continue with Google
         </button>
 
-        <!-- Create Account Link -->
-        <p class="text-center text-gray-600 text-sm">
-          New to Schedora?
-          <NuxtLink to="/auth/register" class="text-blue-600 font-semibold hover:underline">
-            Create a Customer Account
-          </NuxtLink>
-        </p>
-
+        <div class="text-center text-sm mt-4">
+          <template v-if="selectedRole === 'customer'">
+            <span class="text-gray-600">New to Schedora? </span>
+            <NuxtLink to="/auth/register" class="text-blue-600 font-semibold hover:underline">
+              Create a Customer Account
+            </NuxtLink>
+          </template>
+          <template v-else-if="selectedRole === 'staff'">
+            <span class="text-gray-600">Don't have an account? </span>
+            <a href="mailto:support@schedora.com" class="text-blue-600 font-semibold hover:underline">
+              Contact Business Owner
+            </a>
+          </template>
+          <template v-else-if="selectedRole === 'owner'">
+            <span class="text-gray-600">New business owner? </span>
+            <NuxtLink to="/auth/register-owner" class="text-blue-600 font-semibold hover:underline">
+              Register Your Business
+            </NuxtLink>
+          </template>
+        </div>
       </form>
     </div>
 
+  </div>
+  <!-- Footer Links -->
+  <div class="mt-8 text-center text-xs text-gray-400 space-x-4">
+    <a href="#" class="hover:text-gray-600">Terms of Service</a>
+    <a href="#" class="hover:text-gray-600">Privacy Policy</a>
+    <a href="#" class="hover:text-gray-600">Help Center</a>
+    <a href="#" class="hover:text-gray-600">Contact Us</a>
   </div>
 </template>
 
@@ -149,6 +173,21 @@ const roles = [
 ]
 
 const selectedRole = ref('customer')
+
+const headings = {
+  customer: {
+    title: 'Welcome Back',
+    subtitle: 'Log in to manage your bookings'
+  },
+  staff: {
+    title: 'Staff Login',
+    subtitle: 'Access your daily schedule and appointments'
+  },
+  owner: {
+    title: 'Owner Login',
+    subtitle: 'Manage your business and team'
+  }
+}
 
 const form = reactive({
   email: '',

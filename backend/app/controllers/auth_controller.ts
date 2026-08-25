@@ -231,7 +231,7 @@ export default class AuthController {
     }
 
     // Update password
-    user.password = await hash.make(data.password)
+    user.password = data.password
     user.passwordResetToken = null
     user.passwordResetExpiry = null
     user.isActive = true //activate account after password reset
