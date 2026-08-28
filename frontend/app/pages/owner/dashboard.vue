@@ -573,7 +573,166 @@
           </div>
         </div>
 
-        <!-- More sections coming next -->
+        <!-- Revenue Trends + Pending Reviews -->
+        <div class="flex gap-4 mb-6">
+          <!-- Revenue Trends Chart -->
+          <div class="flex-1 bg-white border border-gray-200 rounded-xl p-5">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-sm font-bold text-gray-800">Revenue Trends</h3>
+              <div
+                class="flex border border-gray-200 rounded-lg overflow-hidden"
+              >
+                <button
+                  @click="revenueView = 'weekly'"
+                  class="px-3 py-1.5 text-xs font-medium transition"
+                  :class="
+                    revenueView === 'weekly'
+                      ? 'bg-blue-600 text-white'
+                      : 'text-gray-500 hover:bg-gray-50'
+                  "
+                >
+                  Weekly
+                </button>
+                <button
+                  @click="revenueView = 'monthly'"
+                  class="px-3 py-1.5 text-xs font-medium transition"
+                  :class="
+                    revenueView === 'monthly'
+                      ? 'bg-blue-600 text-white'
+                      : 'text-gray-500 hover:bg-gray-50'
+                  "
+                >
+                  Monthly
+                </button>
+              </div>
+            </div>
+
+            <!-- Legend -->
+            <div class="flex items-center gap-4 mb-4">
+              <span class="flex items-center gap-1.5 text-xs text-gray-500">
+                <span
+                  class="w-3 h-3 rounded-full bg-blue-600 inline-block"
+                ></span>
+                Pending
+              </span>
+              <span class="flex items-center gap-1.5 text-xs text-gray-500">
+                <span
+                  class="w-3 h-3 rounded-full bg-green-500 inline-block"
+                ></span>
+                Completed
+              </span>
+            </div>
+
+            <!-- Bar Chart -->
+            <div class="flex items-end gap-2 h-36">
+              <div
+                v-for="(bar, index) in currentChartData"
+                :key="index"
+                class="flex-1 flex flex-col items-center gap-1"
+              >
+                <div
+                  class="w-full flex flex-col justify-end gap-0.5"
+                  style="height: 120px"
+                >
+                  <!-- Completed bar -->
+                  <div
+                    class="w-full bg-green-500 rounded-t transition-all duration-500"
+                    :style="{
+                      height: (bar.completed / maxBarValue) * 100 + 'px',
+                    }"
+                  ></div>
+                  <!-- Pending bar -->
+                  <div
+                    class="w-full bg-blue-600 rounded-t transition-all duration-500"
+                    :style="{
+                      height: (bar.pending / maxBarValue) * 100 + 'px',
+                    }"
+                  ></div>
+                </div>
+                <p class="text-xs text-gray-400">{{ bar.label }}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pending Reviews Panel -->
+          <div class="w-72 bg-white border border-gray-200 rounded-xl p-5">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-sm font-bold text-gray-800">Pending Reviews</h3>
+              <span
+                class="text-xs font-bold text-white bg-blue-600 px-2 py-0.5 rounded-full"
+                >NEW</span
+              >
+            </div>
+
+            <!-- Review cards -->
+            <div class="space-y-3">
+              <div
+                v-for="review in pendingReviews"
+                :key="review.id"
+                class="border border-gray-100 rounded-xl p-3"
+              >
+                <div class="flex items-center gap-2 mb-2">
+                  <div
+                    class="w-7 h-7 bg-blue-100 rounded-full flex items-center justify-center"
+                  >
+                    <span class="text-blue-600 text-xs font-semibold">{{
+                      review.name[0]
+                    }}</span>
+                  </div>
+                  <div>
+                    <p class="text-xs font-semibold text-gray-800">
+                      {{ review.name }}
+                    </p>
+                    <!-- Stars -->
+                    <div class="flex gap-0.5">
+                      <svg
+                        v-for="i in 5"
+                        :key="i"
+                        class="w-3 h-3"
+                        :class="
+                          i <= review.rating
+                            ? 'text-yellow-400'
+                            : 'text-gray-200'
+                        "
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+                <p class="text-xs text-gray-500 mb-3 line-clamp-2">
+                  {{ review.comment }}
+                </p>
+                <div class="flex gap-2">
+                  <button
+                    class="flex-1 border border-gray-200 text-gray-600 text-xs font-medium py-1.5 rounded-lg hover:bg-gray-50 transition"
+                  >
+                    Respond
+                  </button>
+                  <button
+                    class="flex-1 border border-gray-200 text-gray-600 text-xs font-medium py-1.5 rounded-lg hover:bg-gray-50 transition"
+                  >
+                    Dismiss
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- View All -->
+            <button
+              @click="navigateTo('/owner/reviews')"
+              class="w-full text-center text-xs text-blue-600 hover:text-blue-700 font-medium mt-3"
+            >
+              View All 28 Reviews →
+            </button>
+          </div>
+        </div>
+
+        <!-- More sections loading -->
         <p class="text-gray-400 text-sm">More sections loading...</p>
       </main>
     </div>
@@ -618,4 +777,56 @@ const stats = reactive({
   pendingReviews: 28,
   avgRating: 4.8,
 });
+
+// Revenue chart view toggle
+const revenueView = ref<"weekly" | "monthly">("weekly");
+
+// Weekly chart data
+const weeklyData = [
+  { label: "Mon", completed: 80, pending: 40 },
+  { label: "Tue", completed: 120, pending: 60 },
+  { label: "Wed", completed: 90, pending: 50 },
+  { label: "Thu", completed: 70, pending: 30 },
+  { label: "Fri", completed: 150, pending: 80 },
+  { label: "Sat", completed: 110, pending: 55 },
+  { label: "Sun", completed: 60, pending: 25 },
+];
+
+// Monthly chart data
+const monthlyData = [
+  { label: "Jan", completed: 400, pending: 200 },
+  { label: "Feb", completed: 350, pending: 150 },
+  { label: "Mar", completed: 500, pending: 250 },
+  { label: "Apr", completed: 450, pending: 220 },
+  { label: "May", completed: 600, pending: 300 },
+  { label: "Jun", completed: 550, pending: 280 },
+];
+
+// Current chart data based on view
+const currentChartData = computed(() =>
+  revenueView.value === "weekly" ? weeklyData : monthlyData,
+);
+
+// Max bar value for scaling
+const maxBarValue = computed(() =>
+  Math.max(...currentChartData.value.map((b) => b.completed + b.pending)),
+);
+
+// Pending reviews sample data
+const pendingReviews = ref([
+  {
+    id: 1,
+    name: "Marcus Wright",
+    rating: 3,
+    comment:
+      "Excellent service from the staff today. The booking was seamless and very...",
+  },
+  {
+    id: 2,
+    name: "Elena Lopez",
+    rating: 4,
+    comment:
+      "Great work but the lobby was a bit crowded. The staff was super helpful...",
+  },
+]);
 </script>
