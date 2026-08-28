@@ -394,9 +394,187 @@
         </div>
       </header>
 
-      <!-- Dashboard Content — more sections coming next -->
-      <main class="flex-1 p-6">
-        <p class="text-gray-400 text-sm">Dashboard content loading...</p>
+      <!-- Dashboard Content -->
+      <main class="flex-1 p-6 overflow-y-auto">
+        <!-- Dashboard Header -->
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <h1 class="text-xl font-bold text-gray-900">Overview Dashboard</h1>
+            <p class="text-sm text-gray-500 mt-0.5">
+              Welcome back, Jordan. Here is your business status today.
+            </p>
+          </div>
+          <!-- Date range picker and Export -->
+          <div class="flex items-center gap-3">
+            <div
+              class="flex items-center gap-2 border border-gray-200 rounded-lg px-3 py-2"
+            >
+              <svg
+                class="w-4 h-4 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                />
+              </svg>
+              <select
+                v-model="dateRange"
+                class="text-xs text-gray-600 focus:outline-none bg-transparent"
+              >
+                <option value="today">Today</option>
+                <option value="week">This Week</option>
+                <option value="month">This Month</option>
+                <option value="custom">Custom Range</option>
+              </select>
+            </div>
+            <button
+              class="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-medium transition"
+            >
+              <svg
+                class="w-3.5 h-3.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                />
+              </svg>
+              Export
+            </button>
+          </div>
+        </div>
+
+        <!-- 4 Summary Cards -->
+        <div class="grid grid-cols-4 gap-4 mb-6">
+          <!-- Total Revenue -->
+          <div class="bg-white border border-gray-200 rounded-xl p-5">
+            <div class="flex items-center justify-between mb-3">
+              <div
+                class="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center"
+              >
+                <svg
+                  class="w-5 h-5 text-blue-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
+              <span
+                class="text-xs font-semibold text-green-600 bg-green-50 px-2 py-0.5 rounded-full"
+                >+12.5% ↑</span
+              >
+            </div>
+            <p class="text-2xl font-bold text-blue-600">
+              ${{ stats.totalRevenue.toLocaleString() }}
+            </p>
+            <p class="text-xs text-gray-500 mt-1">Total Revenue</p>
+          </div>
+
+          <!-- Bookings -->
+          <div class="bg-white border border-gray-200 rounded-xl p-5">
+            <div class="flex items-center justify-between mb-3">
+              <div
+                class="w-10 h-10 bg-teal-50 rounded-xl flex items-center justify-center"
+              >
+                <svg
+                  class="w-5 h-5 text-teal-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+              </div>
+              <span
+                class="text-xs font-semibold text-teal-600 bg-teal-50 px-2 py-0.5 rounded-full"
+                >84% Capacity</span
+              >
+            </div>
+            <p class="text-2xl font-bold text-gray-900">{{ stats.bookings }}</p>
+            <p class="text-xs text-gray-500 mt-1">Bookings</p>
+          </div>
+
+          <!-- Pending Reviews -->
+          <div class="bg-white border border-gray-200 rounded-xl p-5">
+            <div class="flex items-center justify-between mb-3">
+              <div
+                class="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center"
+              >
+                <svg
+                  class="w-5 h-5 text-orange-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+                  />
+                </svg>
+              </div>
+              <span
+                class="text-xs font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded-full"
+                >12 Urgent</span
+              >
+            </div>
+            <p class="text-2xl font-bold text-gray-900">
+              {{ stats.pendingReviews }}
+            </p>
+            <p class="text-xs text-gray-500 mt-1">Pending Reviews</p>
+          </div>
+
+          <!-- Average Rating -->
+          <div class="bg-white border border-gray-200 rounded-xl p-5">
+            <div class="flex items-center justify-between mb-3">
+              <div
+                class="w-10 h-10 bg-yellow-50 rounded-xl flex items-center justify-center"
+              >
+                <svg
+                  class="w-5 h-5 text-yellow-500"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                  />
+                </svg>
+              </div>
+              <span class="text-xs font-semibold text-gray-500"
+                >4.9 Overall</span
+              >
+            </div>
+            <p class="text-2xl font-bold text-gray-900">
+              {{ stats.avgRating }}
+            </p>
+            <p class="text-xs text-gray-500 mt-1">Avg Rating</p>
+          </div>
+        </div>
+
+        <!-- More sections coming next -->
+        <p class="text-gray-400 text-sm">More sections loading...</p>
       </main>
     </div>
   </div>
@@ -428,5 +606,16 @@ onMounted(() => {
       showProfileMenu.value = false;
     }
   });
+});
+
+// Date range filter
+const dateRange = ref("week");
+
+// Summary stats — will be replaced by API data when connected to backend
+const stats = reactive({
+  totalRevenue: 24450,
+  bookings: 142,
+  pendingReviews: 28,
+  avgRating: 4.8,
 });
 </script>
