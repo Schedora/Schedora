@@ -876,8 +876,124 @@
           </table>
         </div>
 
-        <!-- More sections loading -->
-        <p class="text-gray-400 text-sm">More sections loading...</p>
+        <!-- Staff Performance + Revenue Distribution -->
+        <div class="flex gap-4">
+          <!-- Staff Performance -->
+          <div class="flex-1 bg-white border border-gray-200 rounded-xl p-5">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-sm font-bold text-gray-800">Staff Performance</h3>
+              <button
+                @click="navigateTo('/owner/staff')"
+                class="text-xs text-blue-600 hover:text-blue-700 font-medium"
+              >
+                Manage All
+              </button>
+            </div>
+
+            <div class="space-y-4">
+              <div
+                v-for="staff in staffPerformance"
+                :key="staff.id"
+                class="flex items-center gap-3"
+              >
+                <!-- Avatar -->
+                <div
+                  class="w-9 h-9 rounded-full flex items-center justify-center text-xs font-semibold text-white flex-shrink-0"
+                  :style="{ backgroundColor: staff.color }"
+                >
+                  {{ staff.initials }}
+                </div>
+
+                <!-- Info -->
+                <div class="flex-1">
+                  <div class="flex items-center justify-between mb-1">
+                    <p class="text-xs font-semibold text-gray-800">
+                      {{ staff.name }}
+                    </p>
+                    <div class="flex items-center gap-1">
+                      <svg
+                        class="w-3 h-3 text-yellow-400"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                        />
+                      </svg>
+                      <span class="text-xs font-semibold text-gray-700">{{
+                        staff.rating
+                      }}</span>
+                    </div>
+                  </div>
+                  <!-- Progress bar — completed vs pending -->
+                  <div class="w-full bg-gray-100 rounded-full h-1.5">
+                    <div
+                      class="bg-green-500 h-1.5 rounded-full transition-all"
+                      :style="{
+                        width:
+                          (staff.completed /
+                            (staff.completed + staff.pending)) *
+                            100 +
+                          '%',
+                      }"
+                    ></div>
+                  </div>
+                  <div class="flex justify-between mt-1">
+                    <span class="text-xs text-gray-400"
+                      >Completed {{ staff.completed }}</span
+                    >
+                    <span class="text-xs text-gray-400"
+                      >Pending {{ staff.pending }}</span
+                    >
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Revenue Distribution -->
+          <div class="w-72 bg-white border border-gray-200 rounded-xl p-5">
+            <h3 class="text-sm font-bold text-gray-800 mb-4">
+              Revenue Distribution
+            </h3>
+
+            <div class="space-y-3">
+              <div
+                v-for="item in revenueDistribution"
+                :key="item.label"
+                class="flex items-center justify-between"
+              >
+                <div class="flex items-center gap-2">
+                  <span
+                    class="w-3 h-3 rounded-full flex-shrink-0"
+                    :style="{ backgroundColor: item.color }"
+                  ></span>
+                  <span class="text-xs text-gray-600">{{ item.label }}</span>
+                </div>
+                <span class="text-xs font-semibold text-gray-800"
+                  >${{ item.amount.toLocaleString() }}</span
+                >
+              </div>
+            </div>
+
+            <!-- Stacked progress bar -->
+            <div class="flex h-2 rounded-full overflow-hidden mt-4">
+              <div
+                v-for="item in revenueDistribution"
+                :key="item.label"
+                class="h-full transition-all"
+                :style="{
+                  width: (item.amount / totalDistributionAmount) * 100 + '%',
+                  backgroundColor: item.color,
+                }"
+              ></div>
+            </div>
+
+            <p class="text-xs text-gray-400 text-center mt-3">
+              Total: ${{ totalDistributionAmount.toLocaleString() }}
+            </p>
+          </div>
+        </div>
       </main>
     </div>
   </div>
@@ -1004,4 +1120,47 @@ const todaysBookings = ref([
     status: "pending",
   },
 ]);
+
+// Staff performance data
+const staffPerformance = ref([
+  {
+    id: 1,
+    name: "David Reynolds",
+    initials: "DR",
+    color: "#3B82F6",
+    rating: 4.9,
+    completed: 10,
+    pending: 2,
+  },
+  {
+    id: 2,
+    name: "Marie Leclair",
+    initials: "ML",
+    color: "#8B5CF6",
+    rating: 4.7,
+    completed: 8,
+    pending: 4,
+  },
+  {
+    id: 3,
+    name: "James Sterling",
+    initials: "JS",
+    color: "#10B981",
+    rating: 4.5,
+    completed: 12,
+    pending: 1,
+  },
+]);
+
+// Revenue distribution data
+const revenueDistribution = ref([
+  { label: "Direct Consultations", amount: 12240, color: "#3B82F6" },
+  { label: "Subscription Packs", amount: 8400, color: "#06B6D4" },
+  { label: "Add-on Services", amount: 3810, color: "#D1D5DB" },
+]);
+
+// Total for stacked bar calculation
+const totalDistributionAmount = computed(() =>
+  revenueDistribution.value.reduce((sum, item) => sum + item.amount, 0),
+);
 </script>
