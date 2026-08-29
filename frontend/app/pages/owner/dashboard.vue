@@ -732,6 +732,150 @@
           </div>
         </div>
 
+        <!-- Today's Bookings Table -->
+        <div class="bg-white border border-gray-200 rounded-xl mb-6">
+          <div
+            class="px-5 py-4 border-b border-gray-100 flex items-center justify-between"
+          >
+            <h3 class="text-sm font-bold text-gray-800">Today's Bookings</h3>
+            <div class="flex items-center gap-3">
+              <span class="flex items-center gap-1.5 text-xs text-gray-500">
+                <span
+                  class="w-2 h-2 rounded-full bg-green-500 inline-block"
+                ></span>
+                Confirmed
+              </span>
+              <span class="flex items-center gap-1.5 text-xs text-gray-500">
+                <span
+                  class="w-2 h-2 rounded-full bg-blue-500 inline-block"
+                ></span>
+                In Progress
+              </span>
+              <span class="flex items-center gap-1.5 text-xs text-gray-500">
+                <span
+                  class="w-2 h-2 rounded-full bg-gray-300 inline-block"
+                ></span>
+                Pending
+              </span>
+            </div>
+          </div>
+
+          <!-- Table -->
+          <table class="w-full">
+            <thead>
+              <tr class="border-b border-gray-100">
+                <th
+                  class="text-left px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide"
+                >
+                  Customer
+                </th>
+                <th
+                  class="text-left px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide"
+                >
+                  Service
+                </th>
+                <th
+                  class="text-left px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide"
+                >
+                  Time
+                </th>
+                <th
+                  class="text-left px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide"
+                >
+                  Staff
+                </th>
+                <th
+                  class="text-left px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide"
+                >
+                  Status
+                </th>
+                <th
+                  class="text-left px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide"
+                >
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="booking in todaysBookings"
+                :key="booking.id"
+                class="border-b border-gray-50 hover:bg-gray-50 transition"
+              >
+                <!-- Customer -->
+                <td class="px-5 py-3">
+                  <div>
+                    <p class="text-xs font-semibold text-gray-800">
+                      {{ booking.customer }}
+                    </p>
+                    <p class="text-xs text-gray-400">{{ booking.ref }}</p>
+                  </div>
+                </td>
+
+                <!-- Service -->
+                <td class="px-5 py-3">
+                  <p class="text-xs text-gray-700">{{ booking.service }}</p>
+                </td>
+
+                <!-- Time -->
+                <td class="px-5 py-3">
+                  <p class="text-xs text-gray-600">{{ booking.time }}</p>
+                </td>
+
+                <!-- Staff -->
+                <td class="px-5 py-3">
+                  <div class="flex items-center gap-2">
+                    <div
+                      class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center"
+                    >
+                      <span class="text-blue-600 text-xs font-semibold">{{
+                        booking.staff[0]
+                      }}</span>
+                    </div>
+                    <p class="text-xs text-gray-700">{{ booking.staff }}</p>
+                  </div>
+                </td>
+
+                <!-- Status badge -->
+                <td class="px-5 py-3">
+                  <span
+                    class="text-xs font-semibold px-2.5 py-1 rounded-full"
+                    :class="{
+                      'bg-green-100 text-green-700':
+                        booking.status === 'confirmed',
+                      'bg-blue-100 text-blue-700':
+                        booking.status === 'in_progress',
+                      'bg-gray-100 text-gray-600': booking.status === 'pending',
+                    }"
+                  >
+                    {{
+                      booking.status === "in_progress"
+                        ? "In Progress"
+                        : booking.status.charAt(0).toUpperCase() +
+                          booking.status.slice(1)
+                    }}
+                  </span>
+                </td>
+
+                <!-- Actions -->
+                <td class="px-5 py-3">
+                  <button class="text-gray-400 hover:text-gray-600">
+                    <svg
+                      class="w-4 h-4"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"
+                      />
+                    </svg>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
         <!-- More sections loading -->
         <p class="text-gray-400 text-sm">More sections loading...</p>
       </main>
@@ -827,6 +971,37 @@ const pendingReviews = ref([
     rating: 4,
     comment:
       "Great work but the lobby was a bit crowded. The staff was super helpful...",
+  },
+]);
+
+// Today's bookings sample data
+const todaysBookings = ref([
+  {
+    id: 1,
+    customer: "Sarah Jenkins",
+    ref: "#BK-9021",
+    service: "Consultation",
+    time: "10:30 AM",
+    staff: "David R.",
+    status: "confirmed",
+  },
+  {
+    id: 2,
+    customer: "Robert Taylor",
+    ref: "#BK-9025",
+    service: "Technical Support",
+    time: "11:15 AM",
+    staff: "Marie L.",
+    status: "in_progress",
+  },
+  {
+    id: 3,
+    customer: "Alice Chen",
+    ref: "#BK-9030",
+    service: "Asset Audit",
+    time: "01:00 PM",
+    staff: "James S.",
+    status: "pending",
   },
 ]);
 </script>
