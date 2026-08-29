@@ -1,0 +1,1166 @@
+<template>
+  <div class="flex min-h-screen bg-gray-50">
+    <!-- Left Sidebar -->
+    <div
+      class="w-52 min-h-screen bg-white border-r border-gray-200 flex flex-col"
+    >
+      <!-- Logo -->
+      <div class="p-5 border-b border-gray-200">
+        <div class="flex items-center gap-2">
+          <div
+            class="w-7 h-7 bg-blue-600 rounded-lg flex items-center justify-center"
+          >
+            <svg
+              class="w-3.5 h-3.5 text-white"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+              />
+            </svg>
+          </div>
+          <div>
+            <p class="text-sm font-bold text-blue-600">Schedora</p>
+            <p class="text-xs text-gray-400">Business Suite</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Nav Links -->
+      <nav class="flex-1 p-3 space-y-1">
+        <!-- Home — takes owner to business public homepage -->
+        <button
+          @click="navigateTo('/customer/business/' + businessId)"
+          class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50 transition"
+        >
+          <svg
+            class="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+            />
+          </svg>
+          Home
+        </button>
+
+        <!-- Overview — active -->
+        <button
+          class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium bg-blue-600 text-white"
+        >
+          <svg
+            class="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
+            />
+          </svg>
+          Overview
+        </button>
+
+        <!-- Revenue -->
+        <button
+          @click="navigateTo('/owner/revenue')"
+          class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50 transition"
+        >
+          <svg
+            class="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          Revenue
+        </button>
+
+        <!-- Staff -->
+        <button
+          @click="navigateTo('/owner/staff')"
+          class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50 transition"
+        >
+          <svg
+            class="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
+            />
+          </svg>
+          Staff
+        </button>
+
+        <!-- Reviews -->
+        <button
+          @click="navigateTo('/owner/reviews')"
+          class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50 transition"
+        >
+          <svg
+            class="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+            />
+          </svg>
+          Reviews
+        </button>
+
+        <!-- Bookings List -->
+        <button
+          @click="navigateTo('/owner/bookings')"
+          class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50 transition"
+        >
+          <svg
+            class="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+            />
+          </svg>
+          Bookings List
+        </button>
+
+        <!-- Trends -->
+        <button
+          @click="navigateTo('/owner/trends')"
+          class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50 transition"
+        >
+          <svg
+            class="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+            />
+          </svg>
+          Trends
+        </button>
+      </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-1 flex flex-col">
+      <!-- Top Bar -->
+      <header
+        class="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between"
+      >
+        <!-- Search -->
+        <div class="relative">
+          <svg
+            class="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            />
+          </svg>
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="Search bookings, staff..."
+            class="pl-9 pr-4 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-56"
+          />
+        </div>
+
+        <!-- Right side actions -->
+        <div class="flex items-center gap-3">
+          <!-- Export CSV -->
+          <button
+            class="flex items-center gap-1.5 px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-50 transition"
+          >
+            <svg
+              class="w-3.5 h-3.5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+              />
+            </svg>
+            Export CSV
+          </button>
+
+          <!-- Generate Report -->
+          <button
+            class="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-medium transition"
+          >
+            <svg
+              class="w-3.5 h-3.5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
+            </svg>
+            Generate Report
+          </button>
+
+          <!-- Notification bell -->
+          <button class="relative text-gray-400 hover:text-gray-600">
+            <svg
+              class="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+              />
+            </svg>
+          </button>
+
+          <!-- Help -->
+          <button class="text-gray-400 hover:text-gray-600">
+            <svg
+              class="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          </button>
+
+          <!-- Settings -->
+          <button class="text-gray-400 hover:text-gray-600">
+            <svg
+              class="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+              />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+              />
+            </svg>
+          </button>
+
+          <!-- Profile Avatar with dropdown -->
+          <div class="relative">
+            <button
+              @click="showProfileMenu = !showProfileMenu"
+              class="flex items-center gap-2 hover:opacity-80 transition"
+            >
+              <div
+                class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center"
+              >
+                <span class="text-white text-xs font-semibold">J</span>
+              </div>
+              <div class="text-left">
+                <p class="text-xs font-semibold text-gray-800">
+                  Jordan Schoedra
+                </p>
+                <p class="text-xs text-gray-400">Master Admin</p>
+              </div>
+            </button>
+
+            <!-- Profile dropdown -->
+            <div
+              v-if="showProfileMenu"
+              class="absolute right-0 top-10 bg-white border border-gray-200 rounded-xl shadow-lg w-52 z-50 py-2"
+            >
+              <button
+                class="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition flex items-center gap-2"
+              >
+                <svg
+                  class="w-4 h-4 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                  />
+                </svg>
+                My Profile
+              </button>
+              <button
+                @click="registerNewBusiness"
+                class="w-full text-left px-4 py-2.5 text-sm text-blue-600 hover:bg-blue-50 transition flex items-center gap-2"
+              >
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 4v16m8-8H4"
+                  />
+                </svg>
+                Register a New Business
+              </button>
+              <div class="border-t border-gray-100 my-1"></div>
+              <button
+                class="w-full text-left px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition flex items-center gap-2"
+              >
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                  />
+                </svg>
+                Sign Out
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Dashboard Content -->
+      <main class="flex-1 p-6 overflow-y-auto">
+        <!-- Dashboard Header -->
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <h1 class="text-xl font-bold text-gray-900">Overview Dashboard</h1>
+            <p class="text-sm text-gray-500 mt-0.5">
+              Welcome back, Jordan. Here is your business status today.
+            </p>
+          </div>
+          <!-- Date range picker and Export -->
+          <div class="flex items-center gap-3">
+            <div
+              class="flex items-center gap-2 border border-gray-200 rounded-lg px-3 py-2"
+            >
+              <svg
+                class="w-4 h-4 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                />
+              </svg>
+              <select
+                v-model="dateRange"
+                class="text-xs text-gray-600 focus:outline-none bg-transparent"
+              >
+                <option value="today">Today</option>
+                <option value="week">This Week</option>
+                <option value="month">This Month</option>
+                <option value="custom">Custom Range</option>
+              </select>
+            </div>
+            <button
+              class="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-medium transition"
+            >
+              <svg
+                class="w-3.5 h-3.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                />
+              </svg>
+              Export
+            </button>
+          </div>
+        </div>
+
+        <!-- 4 Summary Cards -->
+        <div class="grid grid-cols-4 gap-4 mb-6">
+          <!-- Total Revenue -->
+          <div class="bg-white border border-gray-200 rounded-xl p-5">
+            <div class="flex items-center justify-between mb-3">
+              <div
+                class="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center"
+              >
+                <svg
+                  class="w-5 h-5 text-blue-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
+              <span
+                class="text-xs font-semibold text-green-600 bg-green-50 px-2 py-0.5 rounded-full"
+                >+12.5% ↑</span
+              >
+            </div>
+            <p class="text-2xl font-bold text-blue-600">
+              ${{ stats.totalRevenue.toLocaleString() }}
+            </p>
+            <p class="text-xs text-gray-500 mt-1">Total Revenue</p>
+          </div>
+
+          <!-- Bookings -->
+          <div class="bg-white border border-gray-200 rounded-xl p-5">
+            <div class="flex items-center justify-between mb-3">
+              <div
+                class="w-10 h-10 bg-teal-50 rounded-xl flex items-center justify-center"
+              >
+                <svg
+                  class="w-5 h-5 text-teal-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+              </div>
+              <span
+                class="text-xs font-semibold text-teal-600 bg-teal-50 px-2 py-0.5 rounded-full"
+                >84% Capacity</span
+              >
+            </div>
+            <p class="text-2xl font-bold text-gray-900">{{ stats.bookings }}</p>
+            <p class="text-xs text-gray-500 mt-1">Bookings</p>
+          </div>
+
+          <!-- Pending Reviews -->
+          <div class="bg-white border border-gray-200 rounded-xl p-5">
+            <div class="flex items-center justify-between mb-3">
+              <div
+                class="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center"
+              >
+                <svg
+                  class="w-5 h-5 text-orange-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+                  />
+                </svg>
+              </div>
+              <span
+                class="text-xs font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded-full"
+                >12 Urgent</span
+              >
+            </div>
+            <p class="text-2xl font-bold text-gray-900">
+              {{ stats.pendingReviews }}
+            </p>
+            <p class="text-xs text-gray-500 mt-1">Pending Reviews</p>
+          </div>
+
+          <!-- Average Rating -->
+          <div class="bg-white border border-gray-200 rounded-xl p-5">
+            <div class="flex items-center justify-between mb-3">
+              <div
+                class="w-10 h-10 bg-yellow-50 rounded-xl flex items-center justify-center"
+              >
+                <svg
+                  class="w-5 h-5 text-yellow-500"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                  />
+                </svg>
+              </div>
+              <span class="text-xs font-semibold text-gray-500"
+                >4.9 Overall</span
+              >
+            </div>
+            <p class="text-2xl font-bold text-gray-900">
+              {{ stats.avgRating }}
+            </p>
+            <p class="text-xs text-gray-500 mt-1">Avg Rating</p>
+          </div>
+        </div>
+
+        <!-- Revenue Trends + Pending Reviews -->
+        <div class="flex gap-4 mb-6">
+          <!-- Revenue Trends Chart -->
+          <div class="flex-1 bg-white border border-gray-200 rounded-xl p-5">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-sm font-bold text-gray-800">Revenue Trends</h3>
+              <div
+                class="flex border border-gray-200 rounded-lg overflow-hidden"
+              >
+                <button
+                  @click="revenueView = 'weekly'"
+                  class="px-3 py-1.5 text-xs font-medium transition"
+                  :class="
+                    revenueView === 'weekly'
+                      ? 'bg-blue-600 text-white'
+                      : 'text-gray-500 hover:bg-gray-50'
+                  "
+                >
+                  Weekly
+                </button>
+                <button
+                  @click="revenueView = 'monthly'"
+                  class="px-3 py-1.5 text-xs font-medium transition"
+                  :class="
+                    revenueView === 'monthly'
+                      ? 'bg-blue-600 text-white'
+                      : 'text-gray-500 hover:bg-gray-50'
+                  "
+                >
+                  Monthly
+                </button>
+              </div>
+            </div>
+
+            <!-- Legend -->
+            <div class="flex items-center gap-4 mb-4">
+              <span class="flex items-center gap-1.5 text-xs text-gray-500">
+                <span
+                  class="w-3 h-3 rounded-full bg-blue-600 inline-block"
+                ></span>
+                Pending
+              </span>
+              <span class="flex items-center gap-1.5 text-xs text-gray-500">
+                <span
+                  class="w-3 h-3 rounded-full bg-green-500 inline-block"
+                ></span>
+                Completed
+              </span>
+            </div>
+
+            <!-- Bar Chart -->
+            <div class="flex items-end gap-2 h-36">
+              <div
+                v-for="(bar, index) in currentChartData"
+                :key="index"
+                class="flex-1 flex flex-col items-center gap-1"
+              >
+                <div
+                  class="w-full flex flex-col justify-end gap-0.5"
+                  style="height: 120px"
+                >
+                  <!-- Completed bar -->
+                  <div
+                    class="w-full bg-green-500 rounded-t transition-all duration-500"
+                    :style="{
+                      height: (bar.completed / maxBarValue) * 100 + 'px',
+                    }"
+                  ></div>
+                  <!-- Pending bar -->
+                  <div
+                    class="w-full bg-blue-600 rounded-t transition-all duration-500"
+                    :style="{
+                      height: (bar.pending / maxBarValue) * 100 + 'px',
+                    }"
+                  ></div>
+                </div>
+                <p class="text-xs text-gray-400">{{ bar.label }}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pending Reviews Panel -->
+          <div class="w-72 bg-white border border-gray-200 rounded-xl p-5">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-sm font-bold text-gray-800">Pending Reviews</h3>
+              <span
+                class="text-xs font-bold text-white bg-blue-600 px-2 py-0.5 rounded-full"
+                >NEW</span
+              >
+            </div>
+
+            <!-- Review cards -->
+            <div class="space-y-3">
+              <div
+                v-for="review in pendingReviews"
+                :key="review.id"
+                class="border border-gray-100 rounded-xl p-3"
+              >
+                <div class="flex items-center gap-2 mb-2">
+                  <div
+                    class="w-7 h-7 bg-blue-100 rounded-full flex items-center justify-center"
+                  >
+                    <span class="text-blue-600 text-xs font-semibold">{{
+                      review.name[0]
+                    }}</span>
+                  </div>
+                  <div>
+                    <p class="text-xs font-semibold text-gray-800">
+                      {{ review.name }}
+                    </p>
+                    <!-- Stars -->
+                    <div class="flex gap-0.5">
+                      <svg
+                        v-for="i in 5"
+                        :key="i"
+                        class="w-3 h-3"
+                        :class="
+                          i <= review.rating
+                            ? 'text-yellow-400'
+                            : 'text-gray-200'
+                        "
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+                <p class="text-xs text-gray-500 mb-3 line-clamp-2">
+                  {{ review.comment }}
+                </p>
+                <div class="flex gap-2">
+                  <button
+                    class="flex-1 border border-gray-200 text-gray-600 text-xs font-medium py-1.5 rounded-lg hover:bg-gray-50 transition"
+                  >
+                    Respond
+                  </button>
+                  <button
+                    class="flex-1 border border-gray-200 text-gray-600 text-xs font-medium py-1.5 rounded-lg hover:bg-gray-50 transition"
+                  >
+                    Dismiss
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- View All -->
+            <button
+              @click="navigateTo('/owner/reviews')"
+              class="w-full text-center text-xs text-blue-600 hover:text-blue-700 font-medium mt-3"
+            >
+              View All 28 Reviews →
+            </button>
+          </div>
+        </div>
+
+        <!-- Today's Bookings Table -->
+        <div class="bg-white border border-gray-200 rounded-xl mb-6">
+          <div
+            class="px-5 py-4 border-b border-gray-100 flex items-center justify-between"
+          >
+            <h3 class="text-sm font-bold text-gray-800">Today's Bookings</h3>
+            <div class="flex items-center gap-3">
+              <span class="flex items-center gap-1.5 text-xs text-gray-500">
+                <span
+                  class="w-2 h-2 rounded-full bg-green-500 inline-block"
+                ></span>
+                Confirmed
+              </span>
+              <span class="flex items-center gap-1.5 text-xs text-gray-500">
+                <span
+                  class="w-2 h-2 rounded-full bg-blue-500 inline-block"
+                ></span>
+                In Progress
+              </span>
+              <span class="flex items-center gap-1.5 text-xs text-gray-500">
+                <span
+                  class="w-2 h-2 rounded-full bg-gray-300 inline-block"
+                ></span>
+                Pending
+              </span>
+            </div>
+          </div>
+
+          <!-- Table -->
+          <table class="w-full">
+            <thead>
+              <tr class="border-b border-gray-100">
+                <th
+                  class="text-left px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide"
+                >
+                  Customer
+                </th>
+                <th
+                  class="text-left px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide"
+                >
+                  Service
+                </th>
+                <th
+                  class="text-left px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide"
+                >
+                  Time
+                </th>
+                <th
+                  class="text-left px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide"
+                >
+                  Staff
+                </th>
+                <th
+                  class="text-left px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide"
+                >
+                  Status
+                </th>
+                <th
+                  class="text-left px-5 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide"
+                >
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="booking in todaysBookings"
+                :key="booking.id"
+                class="border-b border-gray-50 hover:bg-gray-50 transition"
+              >
+                <!-- Customer -->
+                <td class="px-5 py-3">
+                  <div>
+                    <p class="text-xs font-semibold text-gray-800">
+                      {{ booking.customer }}
+                    </p>
+                    <p class="text-xs text-gray-400">{{ booking.ref }}</p>
+                  </div>
+                </td>
+
+                <!-- Service -->
+                <td class="px-5 py-3">
+                  <p class="text-xs text-gray-700">{{ booking.service }}</p>
+                </td>
+
+                <!-- Time -->
+                <td class="px-5 py-3">
+                  <p class="text-xs text-gray-600">{{ booking.time }}</p>
+                </td>
+
+                <!-- Staff -->
+                <td class="px-5 py-3">
+                  <div class="flex items-center gap-2">
+                    <div
+                      class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center"
+                    >
+                      <span class="text-blue-600 text-xs font-semibold">{{
+                        booking.staff[0]
+                      }}</span>
+                    </div>
+                    <p class="text-xs text-gray-700">{{ booking.staff }}</p>
+                  </div>
+                </td>
+
+                <!-- Status badge -->
+                <td class="px-5 py-3">
+                  <span
+                    class="text-xs font-semibold px-2.5 py-1 rounded-full"
+                    :class="{
+                      'bg-green-100 text-green-700':
+                        booking.status === 'confirmed',
+                      'bg-blue-100 text-blue-700':
+                        booking.status === 'in_progress',
+                      'bg-gray-100 text-gray-600': booking.status === 'pending',
+                    }"
+                  >
+                    {{
+                      booking.status === "in_progress"
+                        ? "In Progress"
+                        : booking.status.charAt(0).toUpperCase() +
+                          booking.status.slice(1)
+                    }}
+                  </span>
+                </td>
+
+                <!-- Actions -->
+                <td class="px-5 py-3">
+                  <button class="text-gray-400 hover:text-gray-600">
+                    <svg
+                      class="w-4 h-4"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"
+                      />
+                    </svg>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Staff Performance + Revenue Distribution -->
+        <div class="flex gap-4">
+          <!-- Staff Performance -->
+          <div class="flex-1 bg-white border border-gray-200 rounded-xl p-5">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-sm font-bold text-gray-800">Staff Performance</h3>
+              <button
+                @click="navigateTo('/owner/staff')"
+                class="text-xs text-blue-600 hover:text-blue-700 font-medium"
+              >
+                Manage All
+              </button>
+            </div>
+
+            <div class="space-y-4">
+              <div
+                v-for="staff in staffPerformance"
+                :key="staff.id"
+                class="flex items-center gap-3"
+              >
+                <!-- Avatar -->
+                <div
+                  class="w-9 h-9 rounded-full flex items-center justify-center text-xs font-semibold text-white flex-shrink-0"
+                  :style="{ backgroundColor: staff.color }"
+                >
+                  {{ staff.initials }}
+                </div>
+
+                <!-- Info -->
+                <div class="flex-1">
+                  <div class="flex items-center justify-between mb-1">
+                    <p class="text-xs font-semibold text-gray-800">
+                      {{ staff.name }}
+                    </p>
+                    <div class="flex items-center gap-1">
+                      <svg
+                        class="w-3 h-3 text-yellow-400"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                        />
+                      </svg>
+                      <span class="text-xs font-semibold text-gray-700">{{
+                        staff.rating
+                      }}</span>
+                    </div>
+                  </div>
+                  <!-- Progress bar — completed vs pending -->
+                  <div class="w-full bg-gray-100 rounded-full h-1.5">
+                    <div
+                      class="bg-green-500 h-1.5 rounded-full transition-all"
+                      :style="{
+                        width:
+                          (staff.completed /
+                            (staff.completed + staff.pending)) *
+                            100 +
+                          '%',
+                      }"
+                    ></div>
+                  </div>
+                  <div class="flex justify-between mt-1">
+                    <span class="text-xs text-gray-400"
+                      >Completed {{ staff.completed }}</span
+                    >
+                    <span class="text-xs text-gray-400"
+                      >Pending {{ staff.pending }}</span
+                    >
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Revenue Distribution -->
+          <div class="w-72 bg-white border border-gray-200 rounded-xl p-5">
+            <h3 class="text-sm font-bold text-gray-800 mb-4">
+              Revenue Distribution
+            </h3>
+
+            <div class="space-y-3">
+              <div
+                v-for="item in revenueDistribution"
+                :key="item.label"
+                class="flex items-center justify-between"
+              >
+                <div class="flex items-center gap-2">
+                  <span
+                    class="w-3 h-3 rounded-full flex-shrink-0"
+                    :style="{ backgroundColor: item.color }"
+                  ></span>
+                  <span class="text-xs text-gray-600">{{ item.label }}</span>
+                </div>
+                <span class="text-xs font-semibold text-gray-800"
+                  >${{ item.amount.toLocaleString() }}</span
+                >
+              </div>
+            </div>
+
+            <!-- Stacked progress bar -->
+            <div class="flex h-2 rounded-full overflow-hidden mt-4">
+              <div
+                v-for="item in revenueDistribution"
+                :key="item.label"
+                class="h-full transition-all"
+                :style="{
+                  width: (item.amount / totalDistributionAmount) * 100 + '%',
+                  backgroundColor: item.color,
+                }"
+              ></div>
+            </div>
+
+            <p class="text-xs text-gray-400 text-center mt-3">
+              Total: ${{ totalDistributionAmount.toLocaleString() }}
+            </p>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+definePageMeta({ layout: false });
+
+// Business ID for Home button
+const businessId = ref(1);
+
+// Search
+const searchQuery = ref("");
+
+// Profile menu toggle
+const showProfileMenu = ref(false);
+
+// Register a new business — navigates to onboarding without losing existing data
+function registerNewBusiness() {
+  showProfileMenu.value = false;
+  navigateTo("/onboarding/business-info");
+}
+
+// Close profile menu when clicking outside
+onMounted(() => {
+  document.addEventListener("click", (e) => {
+    const target = e.target as HTMLElement;
+    if (!target.closest(".relative")) {
+      showProfileMenu.value = false;
+    }
+  });
+});
+
+// Date range filter
+const dateRange = ref("week");
+
+// Summary stats — will be replaced by API data when connected to backend
+const stats = reactive({
+  totalRevenue: 24450,
+  bookings: 142,
+  pendingReviews: 28,
+  avgRating: 4.8,
+});
+
+// Revenue chart view toggle
+const revenueView = ref<"weekly" | "monthly">("weekly");
+
+// Weekly chart data
+const weeklyData = [
+  { label: "Mon", completed: 80, pending: 40 },
+  { label: "Tue", completed: 120, pending: 60 },
+  { label: "Wed", completed: 90, pending: 50 },
+  { label: "Thu", completed: 70, pending: 30 },
+  { label: "Fri", completed: 150, pending: 80 },
+  { label: "Sat", completed: 110, pending: 55 },
+  { label: "Sun", completed: 60, pending: 25 },
+];
+
+// Monthly chart data
+const monthlyData = [
+  { label: "Jan", completed: 400, pending: 200 },
+  { label: "Feb", completed: 350, pending: 150 },
+  { label: "Mar", completed: 500, pending: 250 },
+  { label: "Apr", completed: 450, pending: 220 },
+  { label: "May", completed: 600, pending: 300 },
+  { label: "Jun", completed: 550, pending: 280 },
+];
+
+// Current chart data based on view
+const currentChartData = computed(() =>
+  revenueView.value === "weekly" ? weeklyData : monthlyData,
+);
+
+// Max bar value for scaling
+const maxBarValue = computed(() =>
+  Math.max(...currentChartData.value.map((b) => b.completed + b.pending)),
+);
+
+// Pending reviews sample data
+const pendingReviews = ref([
+  {
+    id: 1,
+    name: "Marcus Wright",
+    rating: 3,
+    comment:
+      "Excellent service from the staff today. The booking was seamless and very...",
+  },
+  {
+    id: 2,
+    name: "Elena Lopez",
+    rating: 4,
+    comment:
+      "Great work but the lobby was a bit crowded. The staff was super helpful...",
+  },
+]);
+
+// Today's bookings sample data
+const todaysBookings = ref([
+  {
+    id: 1,
+    customer: "Sarah Jenkins",
+    ref: "#BK-9021",
+    service: "Consultation",
+    time: "10:30 AM",
+    staff: "David R.",
+    status: "confirmed",
+  },
+  {
+    id: 2,
+    customer: "Robert Taylor",
+    ref: "#BK-9025",
+    service: "Technical Support",
+    time: "11:15 AM",
+    staff: "Marie L.",
+    status: "in_progress",
+  },
+  {
+    id: 3,
+    customer: "Alice Chen",
+    ref: "#BK-9030",
+    service: "Asset Audit",
+    time: "01:00 PM",
+    staff: "James S.",
+    status: "pending",
+  },
+]);
+
+// Staff performance data
+const staffPerformance = ref([
+  {
+    id: 1,
+    name: "David Reynolds",
+    initials: "DR",
+    color: "#3B82F6",
+    rating: 4.9,
+    completed: 10,
+    pending: 2,
+  },
+  {
+    id: 2,
+    name: "Marie Leclair",
+    initials: "ML",
+    color: "#8B5CF6",
+    rating: 4.7,
+    completed: 8,
+    pending: 4,
+  },
+  {
+    id: 3,
+    name: "James Sterling",
+    initials: "JS",
+    color: "#10B981",
+    rating: 4.5,
+    completed: 12,
+    pending: 1,
+  },
+]);
+
+// Revenue distribution data
+const revenueDistribution = ref([
+  { label: "Direct Consultations", amount: 12240, color: "#3B82F6" },
+  { label: "Subscription Packs", amount: 8400, color: "#06B6D4" },
+  { label: "Add-on Services", amount: 3810, color: "#D1D5DB" },
+]);
+
+// Total for stacked bar calculation
+const totalDistributionAmount = computed(() =>
+  revenueDistribution.value.reduce((sum, item) => sum + item.amount, 0),
+);
+</script>
