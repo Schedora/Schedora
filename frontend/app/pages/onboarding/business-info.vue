@@ -239,6 +239,7 @@
           </div>
 
           <!-- Action Buttons -->
+          <p v-if="apiError" class="text-red-500 text-sm">{{ apiError }}</p>
           <div class="flex items-center justify-between">
             <button
               type="button"
@@ -249,9 +250,24 @@
             </button>
             <button
               type="submit"
-              class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl text-sm font-semibold transition"
+              class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl text-sm font-semibold transition flex items-center gap-2 disabled:opacity-60"
+              :disabled="isLoading"
             >
-              Continue to Location →
+              <svg
+                v-if="isLoading"
+                class="w-4 h-4 animate-spin"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                />
+              </svg>
+              {{ isLoading ? "Saving..." : "Continue to Location →" }}
             </button>
           </div>
         </form>
@@ -261,7 +277,9 @@
       <footer
         class="border-t border-gray-200 px-8 py-4 flex justify-between items-center"
       >
-        <p class="text-xs text-gray-400">© Schedora. Professional Booking Solutions.</p>
+        <p class="text-xs text-gray-400">
+          © Schedora. Professional Booking Solutions.
+        </p>
         <div class="flex gap-4">
           <a href="#" class="text-xs text-gray-400 hover:text-gray-600"
             >Privacy Policy</a
@@ -283,6 +301,15 @@
 definePageMeta({
   layout: false,
 });
+// Use the API composable for backend calls
+const api = useApi();
+
+// Store the created business ID so other onboarding steps can use it
+const businessId = ref<number | null>(null);
+
+// Loading and error state
+const isLoading = ref(false);
+const apiError = ref("");
 
 // Form state
 const form = reactive({
@@ -359,14 +386,45 @@ function validate() {
 }
 
 // Handle Continue to Location button
-function handleContinue() {
+async function handleContinue() {
   if (!validate()) return;
 
-  // Save to localStorage so we can resume later
-  localStorage.setItem("onboarding_business", JSON.stringify(form));
+  isLoading.value = true;
+  apiError.value = "";
 
-  // Navigate to Location Setup
-  navigateTo("/onboarding/location");
+  try {
+    // Call the backend to create the business
+    const response = await api.post("/businesses", {
+      name: form.name,
+      category: form.category,
+      description: form.description,
+      booking_policy: form.bookingPolicy,
+    });
+
+    if (response.data) {
+      // Save the business ID for the next onboarding steps
+      businessId.value = response.data.id;
+      localStorage.setItem(
+        "onboarding_business_id",
+        response.data.id.toString(),
+      );
+
+      // Also save form data locally as backup
+      localStorage.setItem("onboarding_business", JSON.stringify(form));
+
+      // Navigate to Location Setup
+      navigateTo("/onboarding/location");
+    } else {
+      // Show any validation errors from the backend
+      apiError.value =
+        response.message || "Something went wrong. Please try again.";
+    }
+  } catch (error) {
+    apiError.value =
+      "Could not connect to the server. Please check your connection.";
+  } finally {
+    isLoading.value = false;
+  }
 }
 
 // Handle Finish Later
