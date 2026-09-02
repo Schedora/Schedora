@@ -159,9 +159,25 @@
               <button
                 type="button"
                 @click="saveBranch"
-                class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg text-sm font-semibold transition flex items-center justify-center gap-2"
+                :disabled="isLoading"
+                class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg text-sm font-semibold transition flex items-center justify-center gap-2 disabled:opacity-60"
               >
                 <svg
+                  v-if="isLoading"
+                  class="w-4 h-4 animate-spin"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                  />
+                </svg>
+                <svg
+                  v-else
                   class="w-4 h-4"
                   fill="none"
                   stroke="currentColor"
@@ -174,7 +190,7 @@
                     d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"
                   />
                 </svg>
-                Save Location
+                {{ isLoading ? "Saving..." : "Save Location" }}
               </button>
             </div>
           </div>
@@ -320,6 +336,7 @@
         <p v-if="nobranchError" class="text-red-500 text-sm mt-4">
           {{ nobranchError }}
         </p>
+        <p v-if="apiError" class="text-red-500 text-sm mt-2">{{ apiError }}</p>
 
         <!-- Action Buttons -->
         <div class="flex items-center justify-between mt-8">
@@ -387,6 +404,17 @@
 
 <script setup lang="ts">
 definePageMeta({ layout: false });
+const api = useApi();
+const isLoading = ref(false);
+const apiError = ref("");
+
+// Get the business ID saved during Business Info step
+const businessId = computed(() => {
+  if (typeof window !== "undefined") {
+    return localStorage.getItem("onboarding_business_id");
+  }
+  return null;
+});
 
 // New branch form
 const newBranch = reactive({
@@ -432,32 +460,75 @@ function validateBranch() {
 }
 
 // Save or update a branch
-function saveBranch() {
+async function saveBranch() {
   if (!validateBranch()) return;
 
-  if (editingIndex.value !== null) {
-    // Update existing branch
-    branches.value[editingIndex.value] = { ...newBranch };
-    editingIndex.value = null;
-  } else {
-    // Add new branch
-    branches.value.push({ ...newBranch });
+  if (!businessId.value) {
+    apiError.value =
+      "Business not found. Please go back and complete Business Info first.";
+    return;
   }
 
-  // Clear the form
-  newBranch.name = "";
-  newBranch.address = "";
-  newBranch.phone = "";
-  newBranch.manager = "";
+  isLoading.value = true;
+  apiError.value = "";
 
-  // Save to localStorage
-  localStorage.setItem("onboarding_branches", JSON.stringify(branches.value));
-  nobranchError.value = "";
+  try {
+    if (editingIndex.value !== null) {
+      // Update existing branch
+      const branch = branches.value[editingIndex.value];
+      if (!branch) return; // guard against undefined
+      const response = await api.put(
+        `/businesses/${businessId.value}/branches/${branch.id}`,
+        {
+          branch_name: newBranch.name,
+          address: newBranch.address,
+          phone: newBranch.phone,
+          manager: newBranch.manager,
+        },
+      );
+
+      if (response.data) {
+        branches.value[editingIndex.value] = response.data;
+        editingIndex.value = null;
+      }
+    } else {
+      // Create new branch
+      const response = await api.post(
+        `/businesses/${businessId.value}/branches`,
+        {
+          branch_name: newBranch.name,
+          address: newBranch.address,
+          phone: newBranch.phone,
+          manager: newBranch.manager,
+        },
+      );
+
+      if (response.data) {
+        branches.value.push(response.data);
+      } else {
+        apiError.value = response.message || "Failed to save branch.";
+        return;
+      }
+    }
+
+    // Clear form
+    newBranch.name = "";
+    newBranch.address = "";
+    newBranch.phone = "";
+    newBranch.manager = "";
+    nobranchError.value = "";
+  } catch (error) {
+    apiError.value =
+      "Could not connect to the server. Please check your connection.";
+  } finally {
+    isLoading.value = false;
+  }
 }
 
 // Load branch into form for editing
 function editBranch(index: number) {
   const branch = branches.value[index];
+  if (!branch) return;
   newBranch.name = branch.name;
   newBranch.address = branch.address;
   newBranch.phone = branch.phone;
@@ -466,9 +537,21 @@ function editBranch(index: number) {
 }
 
 // Delete a branch
-function deleteBranch(index: number) {
-  branches.value.splice(index, 1);
-  localStorage.setItem("onboarding_branches", JSON.stringify(branches.value));
+async function deleteBranch(index: number) {
+  const branch = branches.value[index];
+  if (!branch) return; // guard against undefined
+
+  if (!branch.id || !businessId.value) {
+    branches.value.splice(index, 1);
+    return;
+  }
+
+  try {
+    await api.del(`/businesses/${businessId.value}/branches/${branch.id}`);
+    branches.value.splice(index, 1);
+  } catch (error) {
+    apiError.value = "Failed to delete branch.";
+  }
 }
 
 // Continue to Services
@@ -477,7 +560,6 @@ function handleContinue() {
     nobranchError.value = "Please add at least one branch before continuing";
     return;
   }
-  localStorage.setItem("onboarding_branches", JSON.stringify(branches.value));
   navigateTo("/onboarding/services");
 }
 
@@ -488,10 +570,16 @@ function handleFinishLater() {
 }
 
 // Restore saved data on page load
-onMounted(() => {
-  const saved = localStorage.getItem("onboarding_branches");
-  if (saved) {
-    branches.value = JSON.parse(saved);
+onMounted(async () => {
+  if (!businessId.value) return;
+
+  try {
+    const response = await api.get(`/businesses/${businessId.value}/branches`);
+    if (response.data) {
+      branches.value = response.data;
+    }
+  } catch (error) {
+    console.error("Failed to load branches:", error);
   }
 });
 </script>
