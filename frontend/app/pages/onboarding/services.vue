@@ -170,12 +170,31 @@
               </div>
 
               <!-- Add to Catalog Button -->
+              <p v-if="apiError" class="text-red-500 text-xs mt-1">
+                {{ apiError }}
+              </p>
               <button
                 type="button"
-                @click="addService"
-                class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg text-sm font-semibold transition flex items-center justify-center gap-2"
+                @click="addToCatalog"
+                :disabled="isLoading"
+                class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg text-sm font-semibold transition flex items-center justify-center gap-2 disabled:opacity-60"
               >
                 <svg
+                  v-if="isLoading"
+                  class="w-4 h-4 animate-spin"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                  />
+                </svg>
+                <svg
+                  v-else
                   class="w-4 h-4"
                   fill="none"
                   stroke="currentColor"
@@ -188,7 +207,7 @@
                     d="M12 4v16m8-8H4"
                   />
                 </svg>
-                Add to Catalog
+                {{ isLoading ? "Adding..." : "+ Add to Catalog" }}
               </button>
             </div>
           </div>
@@ -430,6 +449,17 @@
 
 <script setup lang="ts">
 definePageMeta({ layout: false });
+const api = useApi();
+const isLoading = ref(false);
+const apiError = ref("");
+
+// Get business ID saved during Business Info step
+const businessId = computed(() => {
+  if (typeof window !== "undefined") {
+    return localStorage.getItem("onboarding_business_id");
+  }
+  return null;
+});
 
 // New service form
 const newService = reactive({
@@ -491,31 +521,64 @@ function validateService() {
 }
 
 // Add service to catalog
-function addService() {
+async function addToCatalog() {
   if (!validateService()) return;
 
-  services.value.push({
-    name: newService.name,
-    duration: newService.duration!,
-    price: newService.price!,
-    category: newService.category,
-  });
+  if (!businessId.value) {
+    apiError.value =
+      "Business not found. Please go back and complete Business Info first.";
+    return;
+  }
 
-  // Clear form
-  newService.name = "";
-  newService.duration = null;
-  newService.price = null;
-  newService.category = "";
+  isLoading.value = true;
+  apiError.value = "";
 
-  // Save to localStorage
-  localStorage.setItem("onboarding_services", JSON.stringify(services.value));
-  noServiceError.value = "";
+  try {
+    const response = await api.post(
+      `/businesses/${businessId.value}/services`,
+      {
+        name: newService.name,
+        duration: Number(newService.duration),
+        price: Number(newService.price),
+        category: newService.category,
+        description: newService.description,
+      },
+    );
+
+    if (response.data) {
+      services.value.push(response.data);
+
+      // Clear form
+      newService.name = "";
+      newService.duration = 45;
+      newService.price = 60;
+      newService.category = "";
+      newService.description = "";
+    } else {
+      apiError.value = response.message || "Failed to add service.";
+    }
+  } catch (error) {
+    apiError.value = "Could not connect to the server.";
+  } finally {
+    isLoading.value = false;
+  }
 }
 
 // Delete a service
-function deleteService(index: number) {
-  services.value.splice(index, 1);
-  localStorage.setItem("onboarding_services", JSON.stringify(services.value));
+async function deleteService(index: number) {
+  const service = services.value[index];
+
+  if (!service.id || !businessId.value) {
+    services.value.splice(index, 1);
+    return;
+  }
+
+  try {
+    await api.del(`/businesses/${businessId.value}/services/${service.id}`);
+    services.value.splice(index, 1);
+  } catch (error) {
+    apiError.value = "Failed to delete service.";
+  }
 }
 
 // Continue to Staff
@@ -535,10 +598,16 @@ function handleFinishLater() {
 }
 
 // Restore saved data on page load
-onMounted(() => {
-  const saved = localStorage.getItem("onboarding_services");
-  if (saved) {
-    services.value = JSON.parse(saved);
+onMounted(async () => {
+  if (!businessId.value) return;
+
+  try {
+    const response = await api.get(`/businesses/${businessId.value}/services`);
+    if (response.data) {
+      services.value = response.data;
+    }
+  } catch (error) {
+    console.error("Failed to load services:", error);
   }
 });
 </script>
