@@ -209,12 +209,32 @@
               </div>
 
               <!-- Send Invitation Button -->
+              <p v-if="apiError" class="text-red-500 text-xs mt-1">
+                {{ apiError }}
+              </p>
+
               <button
                 type="button"
                 @click="sendInvitation"
-                class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg text-sm font-semibold transition flex items-center justify-center gap-2"
+                :disabled="isLoading"
+                class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg text-sm font-semibold transition flex items-center justify-center gap-2 disabled:opacity-60"
               >
                 <svg
+                  v-if="isLoading"
+                  class="w-4 h-4 animate-spin"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                  />
+                </svg>
+                <svg
+                  v-else
                   class="w-4 h-4"
                   fill="none"
                   stroke="currentColor"
@@ -227,7 +247,7 @@
                     d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
                   />
                 </svg>
-                Send Invitation
+                {{ isLoading ? "Sending..." : "Send Invitation" }}
               </button>
             </div>
           </div>
@@ -412,6 +432,17 @@
 
 <script setup lang="ts">
 definePageMeta({ layout: false });
+const api = useApi();
+const isLoading = ref(false);
+const apiError = ref("");
+
+// Get business ID saved during Business Info step
+const businessId = computed(() => {
+  if (typeof window !== "undefined") {
+    return localStorage.getItem("onboarding_business_id");
+  }
+  return null;
+});
 
 // New staff form state
 const newStaff = reactive({
@@ -489,33 +520,77 @@ function validate() {
 }
 
 // Send invitation
-function sendInvitation() {
+async function sendInvitation() {
   if (!validate()) return;
 
-  teamMembers.value.push({
-    name: newStaff.name,
-    email: newStaff.email,
-    role: newStaff.role || "Staff",
-    locations: [...newStaff.locations],
-    specialties: [...newStaff.specialties],
-    status: "Pending Invite",
-  });
+  if (!businessId.value) {
+    apiError.value =
+      "Business not found. Please go back and complete Business Info first.";
+    return;
+  }
 
-  // Clear form
-  newStaff.name = "";
-  newStaff.email = "";
-  newStaff.role = "";
-  newStaff.locations = [];
-  newStaff.specialties = [];
+  isLoading.value = true;
+  apiError.value = "";
 
-  // Save to localStorage
-  localStorage.setItem("onboarding_staff", JSON.stringify(teamMembers.value));
+  try {
+    // First create the staff account
+    const response = await api.post(`/businesses/${businessId.value}/staff`, {
+      name: newStaff.name,
+      email: newStaff.email,
+      role: newStaff.role || "Staff",
+      locations: newStaff.locations,
+      specialties: newStaff.specialties,
+    });
+
+    if (response.data) {
+      // Then send the invitation email
+      await api.post(
+        `/businesses/${businessId.value}/staff/${response.data.id}/invite`,
+        {},
+      );
+
+      // Add to team list with Pending Invite status
+      teamMembers.value.push({
+        id: response.data.id,
+        name: newStaff.name,
+        email: newStaff.email,
+        role: newStaff.role || "Staff",
+        locations: [...newStaff.locations],
+        specialties: [...newStaff.specialties],
+        status: "Pending Invite",
+      });
+
+      // Clear form
+      newStaff.name = "";
+      newStaff.email = "";
+      newStaff.role = "";
+      newStaff.locations = [];
+      newStaff.specialties = [];
+    } else {
+      apiError.value = response.message || "Failed to add staff member.";
+    }
+  } catch (error) {
+    apiError.value = "Could not connect to the server.";
+  } finally {
+    isLoading.value = false;
+  }
 }
 
 // Remove a team member
-function removeMember(index: number) {
-  teamMembers.value.splice(index, 1);
-  localStorage.setItem("onboarding_staff", JSON.stringify(teamMembers.value));
+async function removeMember(index: number) {
+  const member = teamMembers.value[index];
+
+  if (!member.id || !businessId.value) {
+    teamMembers.value.splice(index, 1);
+    return;
+  }
+
+  try {
+    await api.del(`/businesses/${businessId.value}/staff/${member.id}`);
+    teamMembers.value.splice(index, 1);
+  } catch (error) {
+    apiError.value = "Failed to remove staff member.";
+  }
 }
 
 // Skip — staff setup is optional
@@ -535,25 +610,43 @@ function handleFinishLater() {
   navigateTo("/");
 }
 
-onMounted(() => {
-  // Restore saved staff
-  const savedStaff = localStorage.getItem("onboarding_staff");
-  if (savedStaff) {
-    teamMembers.value = JSON.parse(savedStaff);
-  }
+onMounted(async () => {
+  // Load branches for location checkboxes
+  if (businessId.value) {
+    try {
+      const branchesRes = await api.get(
+        `/businesses/${businessId.value}/branches`,
+      );
+      if (branchesRes.data) {
+        availableLocations.value = branchesRes.data.map(
+          (b: { name: string }) => b.name,
+        );
+      }
 
-  // Load branches from Location step
-  const savedBranches = localStorage.getItem("onboarding_branches");
-  if (savedBranches) {
-    const branches = JSON.parse(savedBranches);
-    availableLocations.value = branches.map((b: { name: string }) => b.name);
-  }
+      const servicesRes = await api.get(
+        `/businesses/${businessId.value}/services`,
+      );
+      if (servicesRes.data) {
+        availableSpecialties.value = servicesRes.data.map(
+          (s: { name: string }) => s.name,
+        );
+      }
 
-  // Load services from Services step
-  const savedServices = localStorage.getItem("onboarding_services");
-  if (savedServices) {
-    const services = JSON.parse(savedServices);
-    availableSpecialties.value = services.map((s: { name: string }) => s.name);
+      const staffRes = await api.get(`/businesses/${businessId.value}/staff`);
+      if (staffRes.data) {
+        teamMembers.value = staffRes.data.map((s: any) => ({
+          id: s.id,
+          name: s.name,
+          email: s.email,
+          role: s.role,
+          locations: s.locations || [],
+          specialties: s.specialties || [],
+          status: s.status === "pending" ? "Pending Invite" : "Active",
+        }));
+      }
+    } catch (error) {
+      console.error("Failed to load staff data:", error);
+    }
   }
 });
 </script>
