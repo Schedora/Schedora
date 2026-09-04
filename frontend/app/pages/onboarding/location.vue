@@ -435,7 +435,13 @@ const nobranchError = ref("");
 
 // List of saved branches
 const branches = ref<
-  { name: string; address: string; phone: string; manager: string }[]
+  {
+    id?: number;
+    name: string;
+    address: string;
+    phone: string;
+    manager: string;
+  }[]
 >([]);
 
 // Track if we are editing an existing branch

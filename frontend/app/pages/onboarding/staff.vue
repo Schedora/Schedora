@@ -482,6 +482,7 @@ const availableSpecialties = ref<string[]>([]);
 // Team members list
 const teamMembers = ref<
   {
+    id?: number;
     name: string;
     email: string;
     role: string;
@@ -579,6 +580,7 @@ async function sendInvitation() {
 // Remove a team member
 async function removeMember(index: number) {
   const member = teamMembers.value[index];
+  if (!member) return;
 
   if (!member.id || !businessId.value) {
     teamMembers.value.splice(index, 1);

@@ -464,9 +464,10 @@ const businessId = computed(() => {
 // New service form
 const newService = reactive({
   name: "",
-  duration: null as number | null,
-  price: null as number | null,
+  duration: 45,
+  price: 60,
   category: "",
+  description: "",
 });
 
 // Validation errors
@@ -482,7 +483,15 @@ const noServiceError = ref("");
 
 // List of saved services
 const services = ref<
-  { name: string; duration: number; price: number; category: string }[]
+  {
+    id?: number;
+    name: string;
+    duration: number;
+    price: number;
+    category: string;
+    description?: string;
+    isActive?: boolean;
+  }[]
 >([]);
 
 // Validate the service form
@@ -567,6 +576,7 @@ async function addToCatalog() {
 // Delete a service
 async function deleteService(index: number) {
   const service = services.value[index];
+  if (!service) return;
 
   if (!service.id || !businessId.value) {
     services.value.splice(index, 1);
