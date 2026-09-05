@@ -113,6 +113,31 @@
             @change="handleFileSelect"
           />
         </div>
+        <!-- Upload errors -->
+        <p v-if="uploadApiError" class="text-orange-500 text-xs mt-2">
+          {{ uploadApiError }}
+        </p>
+
+        <!-- Uploading indicator -->
+        <div
+          v-if="isUploading"
+          class="flex items-center gap-2 text-blue-600 text-sm mt-2"
+        >
+          <svg
+            class="w-4 h-4 animate-spin"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+            />
+          </svg>
+          Syncing to server...
+        </div>
 
         <!-- Upload errors -->
         <div v-if="uploadErrors.length > 0" class="mb-6 space-y-2">
@@ -289,7 +314,17 @@
 
 <script setup lang="ts">
 definePageMeta({ layout: false });
+const api = useApi();
+const isUploading = ref(false);
+const uploadApiError = ref("");
 
+// Get business ID saved during Business Info step
+const businessId = computed(() => {
+  if (typeof window !== "undefined") {
+    return localStorage.getItem("onboarding_business_id");
+  }
+  return null;
+});
 // Drag state
 const isDragging = ref(false);
 
@@ -344,14 +379,54 @@ function processFiles(files: FileList | null) {
 
     // Create preview
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
+      const preview = e.target?.result as string;
+
+      // Add to local preview immediately
       images.value.push({
         name: file.name,
-        preview: e.target?.result as string,
-        isCover: images.value.length === 0, // First image auto-set as cover
+        preview,
+        isCover: images.value.length === 0,
         isBanner: false,
       });
-      // Save to localStorage
+
+      // Upload to backend if business ID exists
+      if (businessId.value) {
+        try {
+          isUploading.value = true;
+          const formData = new FormData();
+          formData.append("images", file);
+
+          const token = localStorage.getItem("auth_token");
+          const response = await fetch(
+            `http://localhost:3333/api/businesses/${businessId.value}/images`,
+            {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+              body: formData,
+            },
+          );
+          const data = await response.json();
+
+          if (data.data && data.data[0]) {
+            // Update the last added image with the real URL from backend
+            const lastIndex = images.value.length - 1;
+            images.value[lastIndex] = {
+              ...images.value[lastIndex],
+              id: data.data[0].id,
+              url: data.data[0].url,
+            };
+          }
+        } catch (error) {
+          uploadApiError.value =
+            "Image uploaded locally but failed to sync to server.";
+        } finally {
+          isUploading.value = false;
+        }
+      }
+
       saveImages();
     };
     reader.readAsDataURL(file);
@@ -373,27 +448,63 @@ function handleDrop(event: DragEvent) {
 }
 
 // Set cover photo — only one at a time
-function setCover(index: number) {
+async function setCover(index: number) {
   images.value.forEach((img, i) => {
     img.isCover = i === index;
   });
   saveImages();
+
+  // Sync with backend if image has an ID
+  const image = images.value[index] as any;
+  if (image.id && businessId.value) {
+    try {
+      await api.put(
+        `/businesses/${businessId.value}/images/${image.id}/cover`,
+        {},
+      );
+    } catch (error) {
+      console.error("Failed to set cover on server:", error);
+    }
+  }
 }
 
 // Set banner — only one at a time
-function setBanner(index: number) {
+async function setBanner(index: number) {
   images.value.forEach((img, i) => {
     img.isBanner = i === index;
   });
   saveImages();
+
+  // Sync with backend if image has an ID
+  const image = images.value[index] as any;
+  if (image.id && businessId.value) {
+    try {
+      await api.put(
+        `/businesses/${businessId.value}/images/${image.id}/banner`,
+        {},
+      );
+    } catch (error) {
+      console.error("Failed to set banner on server:", error);
+    }
+  }
 }
 
 // Remove an image
-function removeImage(index: number) {
-  const wasCover = images.value[index].isCover;
+async function removeImage(index: number) {
+  const image = images.value[index] as any;
+  const wasCover = image.isCover;
+
+  // Delete from backend if image has an ID
+  if (image.id && businessId.value) {
+    try {
+      await api.del(`/businesses/${businessId.value}/images/${image.id}`);
+    } catch (error) {
+      console.error("Failed to delete image from server:", error);
+    }
+  }
+
   images.value.splice(index, 1);
 
-  // If we removed the cover, assign cover to first remaining image
   if (wasCover && images.value.length > 0) {
     images.value[0].isCover = true;
   }
