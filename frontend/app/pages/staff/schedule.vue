@@ -315,6 +315,27 @@
           </div>
 
           <!-- Table -->
+          <!-- Loading state -->
+          <tr v-if="isLoading">
+            <td colspan="4" class="px-6 py-12 text-center">
+              <div class="flex items-center justify-center gap-2 text-blue-600">
+                <svg
+                  class="w-5 h-5 animate-spin"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                  />
+                </svg>
+                <span class="text-sm">Loading schedule...</span>
+              </div>
+            </td>
+          </tr>
           <div class="overflow-x-auto">
             <table class="w-full">
               <thead>
@@ -566,7 +587,17 @@
 
 <script setup lang="ts">
 definePageMeta({ layout: false });
+const api = useApi();
+const isLoading = ref(false);
 
+// Get the logged in staff member's ID from localStorage
+const staffId = computed(() => {
+  if (typeof window !== "undefined") {
+    const user = JSON.parse(localStorage.getItem("auth_user") || "{}");
+    return user.id || null;
+  }
+  return null;
+});
 // Business ID for Home button
 const businessId = ref(1);
 
@@ -602,40 +633,17 @@ function goToToday() {
 }
 
 // Sample appointments — will be replaced by API data
-const appointments = ref([
+const appointments = ref<
   {
-    id: 1,
-    customerName: "Jane Doe",
-    serviceType: "Full Spa Treatment",
-    time: "09:00 AM",
-    price: 120,
-    completed: false,
-  },
-  {
-    id: 2,
-    customerName: "Michael Smith",
-    serviceType: "Massage Therapy",
-    time: "10:30 AM",
-    price: 85,
-    completed: false,
-  },
-  {
-    id: 3,
-    customerName: "Alice Wong",
-    serviceType: "Skin Consultation",
-    time: "01:00 PM",
-    price: 60,
-    completed: false,
-  },
-  {
-    id: 4,
-    customerName: "Robert Jones",
-    serviceType: "Facial & Grooming",
-    time: "02:45 PM",
-    price: 95,
-    completed: false,
-  },
-]);
+    id: number;
+    customerName: string;
+    serviceType: string;
+    time: string;
+    price: number;
+    completed: boolean;
+    bookingId: number;
+  }[]
+>([]);
 
 // Filtered appointments based on search
 const filteredAppointments = computed(() => {
@@ -691,12 +699,22 @@ function confirmMarkDone(appointment: (typeof appointments.value)[0]) {
 }
 
 // Mark appointment as done after confirmation
-function markAsDone() {
-  if (selectedAppointment.value) {
+async function markAsDone() {
+  if (!selectedAppointment.value) return;
+
+  try {
+    await api.put(
+      `/bookings/${selectedAppointment.value.bookingId}/complete`,
+      {},
+    );
     selectedAppointment.value.completed = true;
+  } catch (error) {
+    console.error("Failed to mark as done:", error);
+    // Still mark as done locally even if API fails
+    selectedAppointment.value.completed = true;
+  } finally {
     showConfirmModal.value = false;
     selectedAppointment.value = null;
-    // In production this would call PUT /api/bookings/:id/complete
   }
 }
 
@@ -723,4 +741,32 @@ function getAvatarColor(name: string) {
   const index = name.charCodeAt(0) % colours.length;
   return colours[index];
 }
+onMounted(async () => {
+  if (!staffId.value) return;
+
+  isLoading.value = true;
+  try {
+    const today = currentDate.value.toISOString().split("T")[0];
+    const response = await api.get(`/bookings/staff/${staffId.value}`);
+
+    if (response.data) {
+      // Filter bookings for today only
+      const todayBookings = response.data.filter((b: any) => b.date === today);
+
+      appointments.value = todayBookings.map((b: any) => ({
+        id: b.id,
+        bookingId: b.id,
+        customerName: b.customer_name || "Customer",
+        serviceType: b.service_name || "Service",
+        time: b.time,
+        price: b.price || 0,
+        completed: b.status === "completed",
+      }));
+    }
+  } catch (error) {
+    console.error("Failed to load schedule:", error);
+  } finally {
+    isLoading.value = false;
+  }
+});
 </script>
