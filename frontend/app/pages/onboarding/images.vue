@@ -340,6 +340,8 @@ const finishError = ref("");
 // Images list
 const images = ref<
   {
+    id?: number;
+    url?: string;
     name: string;
     preview: string;
     isCover: boolean;
@@ -413,11 +415,17 @@ function processFiles(files: FileList | null) {
           if (data.data && data.data[0]) {
             // Update the last added image with the real URL from backend
             const lastIndex = images.value.length - 1;
-            images.value[lastIndex] = {
-              ...images.value[lastIndex],
-              id: data.data[0].id,
-              url: data.data[0].url,
-            };
+            const existing = images.value[lastIndex];
+            if (existing) {
+              images.value[lastIndex] = {
+                name: existing.name,
+                preview: existing.preview,
+                isCover: existing.isCover,
+                isBanner: existing.isBanner,
+                id: data.data[0].id,
+                url: data.data[0].url,
+              };
+            }
           }
         } catch (error) {
           uploadApiError.value =
@@ -491,7 +499,8 @@ async function setBanner(index: number) {
 
 // Remove an image
 async function removeImage(index: number) {
-  const image = images.value[index] as any;
+  const image = images.value[index];
+  if (!image) return;
   const wasCover = image.isCover;
 
   // Delete from backend if image has an ID
@@ -506,7 +515,10 @@ async function removeImage(index: number) {
   images.value.splice(index, 1);
 
   if (wasCover && images.value.length > 0) {
-    images.value[0].isCover = true;
+    const firstImage = images.value[0];
+    if (firstImage) {
+      firstImage.isCover = true;
+    }
   }
 
   saveImages();
