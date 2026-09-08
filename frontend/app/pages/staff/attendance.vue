@@ -551,6 +551,9 @@
             <p v-if="submitted" class="text-xs text-green-600 text-center mt-2">
               ✓ Attendance plan submitted!
             </p>
+            <p v-if="submitError" class="text-xs text-red-500 text-center mt-2">
+              {{ submitError }}
+            </p>
           </div>
 
           <!-- Team Presence Score -->
@@ -570,8 +573,83 @@
 </template>
 
 <script setup lang="ts">
-definePageMeta({ layout: false });
+onMounted(async () => {
+  if (!staffId.value) return;
 
+  try {
+    // Load team attendance grid from backend
+    const user = JSON.parse(localStorage.getItem("auth_user") || "{}");
+    const businessId = localStorage.getItem("onboarding_business_id");
+
+    if (businessId) {
+      const response = await api.get(`/businesses/${businessId}/attendance`);
+
+      if (response.data && response.data.length > 0) {
+        const colours = ["#3B82F6", "#8B5CF6", "#F59E0B", "#10B981", "#EC4899"];
+
+        staffList.value = response.data.map((record: any, i: number) => {
+          const name = record.staff?.role || "Staff Member";
+          const initials = name
+            .split(" ")
+            .map((n: string) => n[0])
+            .join("")
+            .toUpperCase()
+            .slice(0, 2);
+
+          // Build attendance object from available_days
+          const attendance: Record<string, string | null> = {
+            Mon: null,
+            Tue: null,
+            Wed: null,
+            Thu: null,
+            Fri: null,
+            Sat: null,
+            Sun: null,
+          };
+
+          const dayMap: Record<string, string> = {
+            Monday: "Mon",
+            Tuesday: "Tue",
+            Wednesday: "Wed",
+            Thursday: "Thu",
+            Friday: "Fri",
+            Saturday: "Sat",
+            Sunday: "Sun",
+          };
+
+          if (record.availableDays) {
+            record.availableDays.forEach((day: string) => {
+              const abbr = dayMap[day];
+              if (abbr) attendance[abbr] = "present";
+            });
+          }
+
+          return {
+            id: record.staffId,
+            name,
+            department: "Department",
+            initials,
+            color: colours[i % colours.length],
+            attendance,
+          };
+        });
+      }
+    }
+  } catch (error) {
+    console.error("Failed to load attendance:", error);
+  }
+});
+definePageMeta({ layout: false });
+const api = useApi();
+
+// Get logged in staff member ID
+const staffId = computed(() => {
+  if (typeof window !== "undefined") {
+    const user = JSON.parse(localStorage.getItem("auth_user") || "{}");
+    return user.id || null;
+  }
+  return null;
+});
 // View mode
 const viewMode = ref<"weekly" | "monthly">("weekly");
 
@@ -623,72 +701,16 @@ const nextWeekLabel = computed(() => {
 });
 
 // Sample staff data
-const staffList = ref([
+const staffList = ref<
   {
-    id: 1,
-    name: "Jane Doe",
-    department: "Grooming Dept.",
-    initials: "JD",
-    color: "#3B82F6",
-    attendance: {
-      Mon: "present",
-      Tue: "present",
-      Wed: "present",
-      Thu: "absent",
-      Fri: "present",
-      Sat: null,
-      Sun: null,
-    },
-  },
-  {
-    id: 2,
-    name: "Mark Smith",
-    department: "Training Dept.",
-    initials: "MS",
-    color: "#8B5CF6",
-    attendance: {
-      Mon: "present",
-      Tue: "absent",
-      Wed: "present",
-      Thu: "present",
-      Fri: "present",
-      Sat: "present",
-      Sun: null,
-    },
-  },
-  {
-    id: 3,
-    name: "Kelly White",
-    department: "Walking Dept.",
-    initials: "KW",
-    color: "#F59E0B",
-    attendance: {
-      Mon: null,
-      Tue: "present",
-      Wed: "present",
-      Thu: "present",
-      Fri: "present",
-      Sat: "present",
-      Sun: "present",
-    },
-  },
-  {
-    id: 4,
-    name: "Rick Jones",
-    department: "Admin",
-    initials: "RJ",
-    color: "#10B981",
-    attendance: {
-      Mon: "present",
-      Tue: "present",
-      Wed: "present",
-      Thu: "present",
-      Fri: "present",
-      Sat: null,
-      Sun: null,
-    },
-  },
-]);
+    id: number;
+    name: string;
+    department: string;
+    initials: string;
+    color: string;
+    attendance: Record<string, string | null>;
+  }[]
+>([]);
 
 // Get attendance for a staff member on a day
 function getAttendance(staffId: number, day: string) {
@@ -733,9 +755,55 @@ function toggleDay(day: string) {
 
 // Submit attendance
 const submitted = ref(false);
-function submitAttendance() {
-  // In production this calls POST /api/staff/:staffId/availability
-  submitted.value = true;
-  setTimeout(() => (submitted.value = false), 3000);
+const submitError = ref("");
+
+async function submitAttendance() {
+  if (!staffId.value) {
+    submitError.value = "Could not identify staff member. Please log in again.";
+    return;
+  }
+
+  // Map selected day abbreviations to full day names
+  const dayMap: Record<string, string> = {
+    Mo: "Monday",
+    Tu: "Tuesday",
+    We: "Wednesday",
+    Th: "Thursday",
+    Fr: "Friday",
+    Sa: "Saturday",
+    Su: "Sunday",
+  };
+
+  const availableDays = availability.selectedDays.map((d) => dayMap[d]);
+
+  // Calculate week start and end dates
+  const today = new Date();
+  const nextMonday = new Date(today);
+  nextMonday.setDate(today.getDate() - today.getDay() + 8);
+  const nextSunday = new Date(nextMonday);
+  nextSunday.setDate(nextMonday.getDate() + 6);
+
+  const weekStart = nextMonday.toISOString().split("T")[0];
+  const weekEnd = nextSunday.toISOString().split("T")[0];
+
+  try {
+    const response = await api.post(`/staff/${staffId.value}/availability`, {
+      week_start: weekStart,
+      week_end: weekEnd,
+      available_days: availableDays,
+      start_time: availability.startTime,
+      end_time: availability.endTime,
+    });
+
+    if (response.message) {
+      submitted.value = true;
+      submitError.value = "";
+      setTimeout(() => (submitted.value = false), 3000);
+    } else {
+      submitError.value = response.message || "Failed to submit attendance.";
+    }
+  } catch (error) {
+    submitError.value = "Could not connect to the server.";
+  }
 }
 </script>
