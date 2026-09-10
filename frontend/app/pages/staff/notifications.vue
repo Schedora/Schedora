@@ -215,6 +215,26 @@
 
       <!-- Activity Stream -->
       <main class="flex-1 p-6 max-w-4xl">
+        <!-- Loading state -->
+        <div
+          v-if="isLoading"
+          class="flex items-center justify-center py-12 gap-2 text-blue-600"
+        >
+          <svg
+            class="w-5 h-5 animate-spin"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+            />
+          </svg>
+          <span class="text-sm">Loading notifications...</span>
+        </div>
         <!-- Page title and actions -->
         <div class="flex items-center justify-between mb-6">
           <div>
@@ -459,7 +479,17 @@
 
 <script setup lang="ts">
 definePageMeta({ layout: false });
+const api = useApi();
+const isLoading = ref(false);
 
+// Get logged in staff member ID
+const staffId = computed(() => {
+  if (typeof window !== "undefined") {
+    const user = JSON.parse(localStorage.getItem("auth_user") || "{}");
+    return user.id || null;
+  }
+  return null;
+});
 // Search
 const searchQuery = ref("");
 
@@ -478,54 +508,32 @@ const filterTypes = [
 const hasUnread = ref(true);
 
 // Mark all as read
-function markAllRead() {
+async function markAllRead() {
   notifications.value.forEach((n) => (n.read = true));
   hasUnread.value = false;
+
+  if (!staffId.value) return;
+
+  try {
+    await api.put(`/notifications/staff/${staffId.value}/read-all`, {});
+  } catch (error) {
+    console.error("Failed to mark all read on server:", error);
+  }
 }
 
 // All notifications
-const notifications = ref([
+const notifications = ref<
   {
-    id: 1,
-    type: "confirmed",
-    title: "New Appointment Confirmed",
-    customerName: "Jordan Smith",
-    message: 'booked a "Standard Grooming" session for July 24 at 10:00 AM.',
-    timeAgo: "2 mins ago",
-    day: "today",
-    read: false,
-  },
-  {
-    id: 2,
-    type: "rescheduled",
-    title: "Appointment Rescheduled",
-    customerName: "Elena Rodriguez",
-    message: 'moved her "Consultation" from 2:00 PM to 4:30 PM today.',
-    timeAgo: "15 mins ago",
-    day: "today",
-    read: false,
-  },
-  {
-    id: 3,
-    type: "cancelled",
-    title: "Booking Cancelled",
-    customerName: "Marcus Chen",
-    message: 'cancelled the "Deep Cleaning" service scheduled for tomorrow.',
-    timeAgo: "Yesterday, 5:42 PM",
-    day: "yesterday",
-    read: true,
-  },
-  {
-    id: 4,
-    type: "recurring",
-    title: "Appointment Confirmed",
-    customerName: "Sarah Jenkins",
-    message: 'booked a recurring weekly "Tutoring Session".',
-    timeAgo: "Yesterday, 2:15 PM",
-    day: "yesterday",
-    read: true,
-  },
-]);
+    id: number;
+    type: string;
+    title: string;
+    customerName: string;
+    message: string;
+    timeAgo: string;
+    day: string;
+    read: boolean;
+  }[]
+>([]);
 
 // Filter notifications by search and active filter
 const filteredNotifications = computed(() => {
@@ -591,4 +599,73 @@ function getIconPath(type: string) {
     "M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
   );
 }
+// Helper to format time ago
+function formatTimeAgo(createdAt: string) {
+  const now = new Date();
+  const created = new Date(createdAt);
+  const diffMs = now.getTime() - created.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMins / 60);
+
+  if (diffMins < 60) return `${diffMins} mins ago`;
+  if (diffHours < 24) return `${diffHours} hours ago`;
+  return "Yesterday";
+}
+
+// Helper to determine notification type from message
+function getNotificationType(notification: any) {
+  const msg = notification.message?.toLowerCase() || "";
+  if (msg.includes("cancel")) return "cancelled";
+  if (msg.includes("reschedul")) return "rescheduled";
+  if (msg.includes("recurring")) return "recurring";
+  return "confirmed";
+}
+
+onMounted(async () => {
+  if (!staffId.value) return;
+
+  isLoading.value = true;
+  try {
+    const response = await api.get(`/notifications/staff/${staffId.value}`);
+
+    if (response.data && response.data.length > 0) {
+      const today = new Date().toDateString();
+      const yesterday = new Date(Date.now() - 86400000).toDateString();
+
+      notifications.value = response.data.map((n: any) => {
+        const createdDate = new Date(n.createdAt).toDateString();
+        const type = getNotificationType(n);
+
+        const titleMap: Record<string, string> = {
+          confirmed: "New Appointment Confirmed",
+          rescheduled: "Appointment Rescheduled",
+          cancelled: "Booking Cancelled",
+          recurring: "Appointment Confirmed",
+        };
+
+        return {
+          id: n.id,
+          type,
+          title: titleMap[type],
+          customerName: n.customerName || "Customer",
+          message: n.message || "",
+          timeAgo: formatTimeAgo(n.createdAt),
+          day:
+            createdDate === today
+              ? "today"
+              : createdDate === yesterday
+                ? "yesterday"
+                : "older",
+          read: n.read || false,
+        };
+      });
+
+      hasUnread.value = notifications.value.some((n) => !n.read);
+    }
+  } catch (error) {
+    console.error("Failed to load notifications:", error);
+  } finally {
+    isLoading.value = false;
+  }
+});
 </script>

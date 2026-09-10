@@ -455,6 +455,26 @@
 
         <!-- 4 Summary Cards -->
         <div class="grid grid-cols-4 gap-4 mb-6">
+          <!-- Loading indicator -->
+          <div
+            v-if="isLoading"
+            class="flex items-center gap-2 text-blue-600 text-sm mb-4"
+          >
+            <svg
+              class="w-4 h-4 animate-spin"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+              />
+            </svg>
+            Loading dashboard data...
+          </div>
           <!-- Total Revenue -->
           <div class="bg-white border border-gray-200 rounded-xl p-5">
             <div class="flex items-center justify-between mb-3">
@@ -1001,9 +1021,16 @@
 
 <script setup lang="ts">
 definePageMeta({ layout: false });
+const api = useApi();
+const isLoading = ref(false);
 
-// Business ID for Home button
-const businessId = ref(1);
+// Get business ID from localStorage
+const businessId = computed(() => {
+  if (typeof window !== "undefined") {
+    return localStorage.getItem("onboarding_business_id") || "1";
+  }
+  return "1";
+});
 
 // Search
 const searchQuery = ref("");
@@ -1032,10 +1059,10 @@ const dateRange = ref("week");
 
 // Summary stats — will be replaced by API data when connected to backend
 const stats = reactive({
-  totalRevenue: 24450,
-  bookings: 142,
-  pendingReviews: 28,
-  avgRating: 4.8,
+  totalRevenue: 0,
+  bookings: 0,
+  pendingReviews: 0,
+  avgRating: 0,
 });
 
 // Revenue chart view toggle
@@ -1073,84 +1100,40 @@ const maxBarValue = computed(() =>
 );
 
 // Pending reviews sample data
-const pendingReviews = ref([
+const pendingReviews = ref<
   {
-    id: 1,
-    name: "Marcus Wright",
-    rating: 3,
-    comment:
-      "Excellent service from the staff today. The booking was seamless and very...",
-  },
-  {
-    id: 2,
-    name: "Elena Lopez",
-    rating: 4,
-    comment:
-      "Great work but the lobby was a bit crowded. The staff was super helpful...",
-  },
-]);
+    id: number;
+    name: string;
+    rating: number;
+    comment: string;
+  }[]
+>([]);
 
 // Today's bookings sample data
-const todaysBookings = ref([
+const todaysBookings = ref<
   {
-    id: 1,
-    customer: "Sarah Jenkins",
-    ref: "#BK-9021",
-    service: "Consultation",
-    time: "10:30 AM",
-    staff: "David R.",
-    status: "confirmed",
-  },
-  {
-    id: 2,
-    customer: "Robert Taylor",
-    ref: "#BK-9025",
-    service: "Technical Support",
-    time: "11:15 AM",
-    staff: "Marie L.",
-    status: "in_progress",
-  },
-  {
-    id: 3,
-    customer: "Alice Chen",
-    ref: "#BK-9030",
-    service: "Asset Audit",
-    time: "01:00 PM",
-    staff: "James S.",
-    status: "pending",
-  },
-]);
+    id: number;
+    customer: string;
+    ref: string;
+    service: string;
+    time: string;
+    staff: string;
+    status: string;
+  }[]
+>([]);
 
 // Staff performance data
-const staffPerformance = ref([
+const staffPerformance = ref<
   {
-    id: 1,
-    name: "David Reynolds",
-    initials: "DR",
-    color: "#3B82F6",
-    rating: 4.9,
-    completed: 10,
-    pending: 2,
-  },
-  {
-    id: 2,
-    name: "Marie Leclair",
-    initials: "ML",
-    color: "#8B5CF6",
-    rating: 4.7,
-    completed: 8,
-    pending: 4,
-  },
-  {
-    id: 3,
-    name: "James Sterling",
-    initials: "JS",
-    color: "#10B981",
-    rating: 4.5,
-    completed: 12,
-    pending: 1,
-  },
-]);
+    id: number;
+    name: string;
+    initials: string;
+    color: string;
+    rating: number;
+    completed: number;
+    pending: number;
+  }[]
+>([]);
 
 // Revenue distribution data
 const revenueDistribution = ref([
@@ -1163,4 +1146,77 @@ const revenueDistribution = ref([
 const totalDistributionAmount = computed(() =>
   revenueDistribution.value.reduce((sum, item) => sum + item.amount, 0),
 );
+const colours = ["#3B82F6", "#8B5CF6", "#10B981", "#F59E0B", "#EC4899"];
+
+onMounted(async () => {
+  isLoading.value = true;
+  try {
+    // Load overview stats
+    const overviewRes = await api.get(
+      `/analytics/${businessId.value}/overview`,
+    );
+    if (overviewRes.data) {
+      stats.totalRevenue = overviewRes.data.totalRevenue || 0;
+      stats.bookings = overviewRes.data.totalBookings || 0;
+      stats.pendingReviews = overviewRes.data.pendingReviews || 0;
+      stats.avgRating = overviewRes.data.avgRating || 0;
+    }
+
+    // Load today's bookings
+    const bookingsRes = await api.get("/bookings");
+    if (bookingsRes.data) {
+      const today = new Date().toISOString().split("T")[0];
+      todaysBookings.value = bookingsRes.data
+        .filter((b: any) => b.date === today)
+        .slice(0, 5)
+        .map((b: any) => ({
+          id: b.id,
+          customer: b.customerName || "Customer",
+          ref: `#BK-${b.id}`,
+          service: b.serviceName || "Service",
+          time: b.time,
+          staff: b.staffName || "Staff",
+          status: b.status,
+        }));
+    }
+
+    // Load reviews
+    const reviewsRes = await api.get(`/reviews/business/${businessId.value}`);
+    if (reviewsRes.data) {
+      pendingReviews.value = reviewsRes.data.slice(0, 2).map((r: any) => ({
+        id: r.id,
+        name: r.customerName || "Customer",
+        rating: r.staffRating || r.businessRating || 3,
+        comment: r.comment || "",
+      }));
+    }
+
+    // Load staff performance
+    const staffRes = await api.get(
+      `/analytics/${businessId.value}/staff/performance`,
+    );
+    if (staffRes.data) {
+      staffPerformance.value = staffRes.data
+        .slice(0, 3)
+        .map((s: any, i: number) => ({
+          id: s.staffId,
+          name: s.name || s.role,
+          initials: (s.name || s.role)
+            .split(" ")
+            .map((n: string) => n[0])
+            .join("")
+            .toUpperCase()
+            .slice(0, 2),
+          color: colours[i % colours.length],
+          rating: s.avgRating || 0,
+          completed: s.completedCount || 0,
+          pending: s.pendingCount || 0,
+        }));
+    }
+  } catch (error) {
+    console.error("Failed to load dashboard data:", error);
+  } finally {
+    isLoading.value = false;
+  }
+});
 </script>

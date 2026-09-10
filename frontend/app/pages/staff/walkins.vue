@@ -301,11 +301,31 @@
               </div>
 
               <!-- Submit Button -->
+              <p v-if="submitError" class="text-red-500 text-xs">
+                {{ submitError }}
+              </p>
+
               <button
                 @click="logWalkin"
-                class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl text-sm font-semibold transition flex items-center justify-center gap-2"
+                :disabled="isSubmitting"
+                class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl text-sm font-semibold transition flex items-center justify-center gap-2 disabled:opacity-60"
               >
                 <svg
+                  v-if="isSubmitting"
+                  class="w-4 h-4 animate-spin"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                  />
+                </svg>
+                <svg
+                  v-else
                   class="w-4 h-4"
                   fill="none"
                   stroke="currentColor"
@@ -318,7 +338,7 @@
                     d="M12 4v16m8-8H4"
                   />
                 </svg>
-                Log Walk-in Entry
+                {{ isSubmitting ? "Logging..." : "Log Walk-in Entry" }}
               </button>
             </div>
           </div>
@@ -453,7 +473,9 @@
 
 <script setup lang="ts">
 definePageMeta({ layout: false });
-
+const api = useApi();
+const isSubmitting = ref(false);
+const submitError = ref("");
 // Form state
 const form = reactive({
   customerName: "",
@@ -511,30 +533,48 @@ function validate() {
 }
 
 // Log walk-in entry
-function logWalkin() {
+async function logWalkin() {
   if (!validate()) return;
 
-  // Add to recent submissions with SYNCED badge
-  recentSubmissions.value.unshift({
-    customerName: form.customerName,
-    serviceType: form.serviceType,
-    time: form.time,
-  });
+  isSubmitting.value = true;
+  submitError.value = "";
 
-  // Update live queue
-  liveQueue.totalToday++;
-  liveQueue.waiting++;
+  try {
+    const response = await api.post("/bookings/walkin", {
+      customer_name: form.customerName,
+      service_type: form.serviceType,
+      date: form.date,
+      time: form.time,
+    });
 
-  // Reset form but keep today's date
-  form.customerName = "";
-  form.serviceType = "";
-  form.time = new Date().toTimeString().slice(0, 5);
+    if (response.data || response.message) {
+      // Add to recent submissions with SYNCED badge
+      recentSubmissions.value.unshift({
+        customerName: form.customerName,
+        serviceType: form.serviceType,
+        time: form.time,
+      });
 
-  // In production this calls POST /api/bookings/walkin
+      // Update live queue
+      liveQueue.totalToday++;
+      liveQueue.waiting++;
+
+      // Reset form but keep today's date
+      form.customerName = "";
+      form.serviceType = "";
+      form.time = new Date().toTimeString().slice(0, 5);
+    } else {
+      submitError.value = response.message || "Failed to log walk-in.";
+    }
+  } catch (error) {
+    submitError.value = "Could not connect to the server.";
+  } finally {
+    isSubmitting.value = false;
+  }
 }
 
 // Load services from localStorage (saved during onboarding)
-onMounted(() => {
+onMounted(async () => {
   // Check if pre-filled from Attend Now button on schedule page
   const pending = localStorage.getItem("pending_walkin");
   if (pending) {
@@ -544,13 +584,26 @@ onMounted(() => {
     localStorage.removeItem("pending_walkin");
   }
 
-  // Load services from onboarding
-  const savedServices = localStorage.getItem("onboarding_services");
-  if (savedServices) {
-    const services = JSON.parse(savedServices);
-    availableServices.value = services.map((s: { name: string }) => s.name);
-  } else {
-    // Fallback sample services
+  // Load real services from backend
+  const businessId = localStorage.getItem("onboarding_business_id");
+  if (businessId) {
+    try {
+      const response = await api.get(
+        `/businesses/${businessId}/services`,
+        false,
+      );
+      if (response.data && response.data.length > 0) {
+        availableServices.value = response.data.map(
+          (s: { name: string }) => s.name,
+        );
+      }
+    } catch (error) {
+      console.error("Failed to load services:", error);
+    }
+  }
+
+  // Fallback if no services loaded
+  if (availableServices.value.length === 0) {
     availableServices.value = [
       "Haircut & Styling",
       "Full Spa Treatment",
@@ -559,12 +612,6 @@ onMounted(() => {
       "Facial & Grooming",
       "Nail Care",
     ];
-  }
-
-  // Load existing submissions for today
-  const savedSubmissions = localStorage.getItem("walkin_submissions");
-  if (savedSubmissions) {
-    recentSubmissions.value = JSON.parse(savedSubmissions);
   }
 });
 </script>
