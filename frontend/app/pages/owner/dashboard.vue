@@ -1031,8 +1031,6 @@ const businessId = computed(() => {
   }
   return "1";
 });
-// Business ID for Home button
-const businessId = ref(1);
 
 // Search
 const searchQuery = ref("");

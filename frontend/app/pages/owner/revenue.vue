@@ -255,6 +255,25 @@
             </div>
           </div>
         </div>
+        <div
+          v-if="isLoading"
+          class="flex items-center gap-2 text-blue-600 text-sm mb-4"
+        >
+          <svg
+            class="w-4 h-4 animate-spin"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+            />
+          </svg>
+          Loading revenue data...
+        </div>
       </header>
 
       <!-- Page Content -->
@@ -510,69 +529,48 @@
 
 <script setup lang="ts">
 definePageMeta({ layout: false });
+const api = useApi();
+const isLoading = ref(false);
+
+const businessId = computed(() => {
+  if (typeof window !== "undefined") {
+    return localStorage.getItem("onboarding_business_id") || "1";
+  }
+  return "1";
+});
 
 const dayFilter = ref(7);
 
-const totalRevenue = ref(12845);
-const completed = ref(9420);
-const completedCount = ref(124);
-const pending = ref(3425);
-const pendingCount = ref(28);
+const totalRevenue = ref(0);
+const completed = ref(0);
+const completedCount = ref(0);
+const pending = ref(0);
+const pendingCount = ref(0);
 
-const chartData = [
-  { label: "Mon", value: 1200 },
-  { label: "Tue", value: 1800 },
-  { label: "Wed", value: 1500 },
-  { label: "Thu", value: 900 },
-  { label: "Fri", value: 2200 },
-  { label: "Sat", value: 1700 },
-  { label: "Sun", value: 800 },
-];
-
-const maxChart = computed(() => Math.max(...chartData.map((b) => b.value)));
-
-const transactions = ref([
-  {
-    id: 1,
-    customer: "Elena Salvatore",
-    service: "Premium Consultation",
-    date: "Oct 24, 2023",
-    status: "Completed",
-    amount: 450,
-  },
-  {
-    id: 2,
-    customer: "Marcus Johnson",
-    service: "On-Site Workshop",
-    date: "Oct 24, 2023",
-    status: "Pending",
-    amount: 1200,
-  },
-  {
-    id: 3,
-    customer: "Sarah Chen",
-    service: "Quarterly Audit",
-    date: "Oct 23, 2023",
-    status: "Completed",
-    amount: 850,
-  },
-  {
-    id: 4,
-    customer: "Tom Brooks",
-    service: "Maintenance Plan",
-    date: "Oct 23, 2023",
-    status: "Failed",
-    amount: 99,
-  },
-  {
-    id: 5,
-    customer: "Linda Watson",
-    service: "Strategy Session",
-    date: "Oct 22, 2023",
-    status: "Pending",
-    amount: 600,
-  },
+const chartData = ref<{ label: string; value: number }[]>([
+  { label: "Mon", value: 0 },
+  { label: "Tue", value: 0 },
+  { label: "Wed", value: 0 },
+  { label: "Thu", value: 0 },
+  { label: "Fri", value: 0 },
+  { label: "Sat", value: 0 },
+  { label: "Sun", value: 0 },
 ]);
+
+const maxChart = computed(() =>
+  Math.max(...chartData.value.map((b) => b.value), 1),
+);
+
+const transactions = ref<
+  {
+    id: number;
+    customer: string;
+    service: string;
+    date: string;
+    status: string;
+    amount: number;
+  }[]
+>([]);
 
 const bottomMetrics = [
   {
@@ -596,4 +594,79 @@ const bottomMetrics = [
     icon: "M13 7h8m0 0v8m0-8l-8 8-4-4-6 6",
   },
 ];
+onMounted(async () => {
+  isLoading.value = true;
+  try {
+    // Load revenue data
+    const revenueRes = await api.get(
+      `/analytics/${businessId.value}/revenue?days=${dayFilter.value}`,
+    );
+
+    if (revenueRes.data) {
+      totalRevenue.value =
+        revenueRes.data.totals?.completed + revenueRes.data.totals?.pending ||
+        0;
+      completed.value = revenueRes.data.totals?.completed || 0;
+      completedCount.value = revenueRes.data.totals?.transactions || 0;
+      pending.value = revenueRes.data.totals?.pending || 0;
+
+      // Update chart data from API response
+      if (revenueRes.data.chart && revenueRes.data.chart.length > 0) {
+        const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+        chartData.value = revenueRes.data.chart.map((item: any, i: number) => ({
+          label: days[i] || `Day ${i + 1}`,
+          value:
+            Number(item.completed_revenue || 0) +
+            Number(item.pending_revenue || 0),
+        }));
+      }
+    }
+
+    // Load transactions
+    const txRes = await api.get(
+      `/analytics/${businessId.value}/revenue/transactions?page=1&limit=5`,
+    );
+
+    if (txRes.data?.transactions) {
+      transactions.value = txRes.data.transactions.map((t: any) => ({
+        id: t.id,
+        customer: t.customer_name || "Customer",
+        service: t.service_name || "Service",
+        date: t.date,
+        status:
+          t.status === "completed"
+            ? "Completed"
+            : t.status === "pending"
+              ? "Pending"
+              : "Failed",
+        amount: Number(t.amount || 0),
+      }));
+    }
+  } catch (error) {
+    console.error("Failed to load revenue data:", error);
+  } finally {
+    isLoading.value = false;
+  }
+});
+
+// Reload when day filter changes
+watch(dayFilter, async () => {
+  isLoading.value = true;
+  try {
+    const revenueRes = await api.get(
+      `/analytics/${businessId.value}/revenue?days=${dayFilter.value}`,
+    );
+    if (revenueRes.data) {
+      totalRevenue.value =
+        revenueRes.data.totals?.completed + revenueRes.data.totals?.pending ||
+        0;
+      completed.value = revenueRes.data.totals?.completed || 0;
+      pending.value = revenueRes.data.totals?.pending || 0;
+    }
+  } catch (error) {
+    console.error("Failed to reload revenue:", error);
+  } finally {
+    isLoading.value = false;
+  }
+});
 </script>
