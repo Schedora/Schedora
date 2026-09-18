@@ -11,7 +11,10 @@ export const useApi = () => {
   // Get the auth token from localStorage
   const getToken = () => {
     if (typeof window !== "undefined") {
-      return localStorage.getItem("auth_token");
+      // Support both key names — Liz's login uses 'token', our composable uses 'auth_token'
+      return (
+        localStorage.getItem("auth_token") || localStorage.getItem("token")
+      );
     }
     return null;
   };
@@ -95,6 +98,7 @@ export const useApi = () => {
    */
   const saveToken = (token: string) => {
     localStorage.setItem("auth_token", token);
+    localStorage.setItem("token", token);
   };
 
   /**
@@ -128,6 +132,8 @@ export const useApi = () => {
   const logout = () => {
     localStorage.removeItem("auth_token");
     localStorage.removeItem("auth_user");
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
   };
 
   return {
