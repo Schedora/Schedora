@@ -11,7 +11,7 @@ export default class Branch extends BaseModel {
   @column()
   declare businessId: number
 
-  @column()
+    @column({ columnName: 'branch_name' })
   declare name: string
 
   @column()
