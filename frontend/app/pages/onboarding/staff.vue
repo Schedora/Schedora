@@ -535,7 +535,7 @@ async function sendInvitation() {
 
   try {
     // First create the staff account
-    const response = await api.post(`/businesses/${businessId.value}/staff`, {
+    const response = await api.post(`/business/${businessId.value}/staff`, {
       name: newStaff.name,
       email: newStaff.email,
       role: newStaff.role || "Staff",
@@ -546,7 +546,7 @@ async function sendInvitation() {
     if (response.data) {
       // Then send the invitation email
       await api.post(
-        `/businesses/${businessId.value}/staff/${response.data.id}/invite`,
+        `/business/${businessId.value}/staff/${response.data.id}/invite`,
         {},
       );
 
@@ -588,7 +588,7 @@ async function removeMember(index: number) {
   }
 
   try {
-    await api.del(`/businesses/${businessId.value}/staff/${member.id}`);
+    await api.del(`/business/${businessId.value}/staff/${member.id}`);
     teamMembers.value.splice(index, 1);
   } catch (error) {
     apiError.value = "Failed to remove staff member.";
@@ -634,7 +634,7 @@ onMounted(async () => {
         );
       }
 
-      const staffRes = await api.get(`/businesses/${businessId.value}/staff`);
+      const staffRes = await api.get(`/business/${businessId.value}/staff`);
       if (staffRes.data) {
         teamMembers.value = staffRes.data.map((s: any) => ({
           id: s.id,
