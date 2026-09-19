@@ -11,8 +11,8 @@ export default class BranchesController {
 
     // Validate the request data before saving
     // Ensures name, address, phone and manager are present and valid
-    const data = await createBranchValidator.validate(request.all())
-
+console.log('Request body:', JSON.stringify(request.all()))
+const data = await createBranchValidator.validate(request.all())
     // Count existing branches for this business
     const existingCount = await Branch.query().where('business_id', business.id).count('* as total')
 

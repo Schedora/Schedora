@@ -467,6 +467,7 @@ function validateBranch() {
 
 // Save or update a branch
 async function saveBranch() {
+  console.log("saveBranch called, newBranch:", JSON.stringify(newBranch));
   if (!validateBranch()) return;
 
   if (!businessId.value) {
@@ -483,14 +484,18 @@ async function saveBranch() {
       // Update existing branch
       const branch = branches.value[editingIndex.value];
       if (!branch) return; // guard against undefined
-      const response = await api.put(
-        `/businesses/${businessId.value}/branches/${branch.id}`,
-        {
-          branch_name: newBranch.name,
-          address: newBranch.address,
-          phone: newBranch.phone,
-          manager: newBranch.manager,
-        },
+      const payload: Record<string, string> = {
+        name: newBranch.name,
+        address: newBranch.address,
+      };
+
+      // Only include phone and manager if they have values
+      if (newBranch.phone.trim()) payload.phone = newBranch.phone.trim();
+      if (newBranch.manager.trim()) payload.manager = newBranch.manager.trim();
+
+      const response = await api.post(
+        `/businesses/${businessId.value}/branches`,
+        payload,
       );
 
       if (response.data) {
@@ -499,14 +504,16 @@ async function saveBranch() {
       }
     } else {
       // Create new branch
+      const payload: Record<string, string> = {
+        name: newBranch.name,
+        address: newBranch.address,
+      };
+      if (newBranch.phone.trim()) payload.phone = newBranch.phone.trim();
+      if (newBranch.manager.trim()) payload.manager = newBranch.manager.trim();
+
       const response = await api.post(
-        `/businesses/${businessId.value}/branches`,
-        {
-          branch_name: newBranch.name,
-          address: newBranch.address,
-          phone: newBranch.phone,
-          manager: newBranch.manager,
-        },
+        `/businesses/${businessId.value}/branches`, // no branch.id needed for create
+        payload,
       );
 
       if (response.data) {

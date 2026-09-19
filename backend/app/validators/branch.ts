@@ -7,18 +7,10 @@ import vine from '@vinejs/vine'
  */
 export const createBranchValidator = vine.compile(
   vine.object({
-    // Branch name is required e.g. "Downtown Boutique" or "Westside Branch"
     name: vine.string().trim().minLength(2).maxLength(100),
-
-    // Full address is required so customers can find the branch
     address: vine.string().trim().minLength(5).maxLength(255),
-
-    // Phone number is required for each branch
-    // We use a simple string validation to support different formats
-    phone: vine.string().trim().minLength(7).maxLength(20),
-
-    // Branch manager name is required
-    manager: vine.string().trim().minLength(2).maxLength(100),
+    phone: vine.string().trim().minLength(7).maxLength(20).optional(),
+    manager: vine.string().trim().minLength(2).maxLength(100).optional()
   })
 )
 

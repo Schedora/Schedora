@@ -106,6 +106,7 @@ export const useApi = () => {
    */
   const saveUser = (user: Record<string, any>) => {
     localStorage.setItem("auth_user", JSON.stringify(user));
+    localStorage.setItem("user", JSON.stringify(user));
   };
 
   /**
@@ -113,7 +114,9 @@ export const useApi = () => {
    */
   const getUser = () => {
     if (typeof window !== "undefined") {
-      const user = localStorage.getItem("auth_user");
+      // Support both key names — Liz uses 'user', our composable uses 'auth_user'
+      const user =
+        localStorage.getItem("auth_user") || localStorage.getItem("user");
       return user ? JSON.parse(user) : null;
     }
     return null;
