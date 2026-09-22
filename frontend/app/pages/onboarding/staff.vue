@@ -536,7 +536,7 @@ async function sendInvitation() {
   try {
     // First create the staff account
     const response = await api.post(`/business/${businessId.value}/staff`, {
-      name: newStaff.name,
+      full_name: newStaff.name,
       email: newStaff.email,
       role: newStaff.role || "Staff",
       locations: newStaff.locations,
