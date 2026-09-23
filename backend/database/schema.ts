@@ -89,26 +89,26 @@ export class BookingSchema extends BaseModel {
 }
 
 export class BranchSchema extends BaseModel {
-  static $columns = ['address', 'businessId', 'createdAt', 'id', 'isActive', 'isPrimary', 'manager', 'name', 'phone', 'updatedAt'] as const
+  static $columns = ['address', 'branchName', 'businessId', 'createdAt', 'id', 'isActive', 'isPrimary', 'manager', 'phone', 'updatedAt'] as const
   $columns = BranchSchema.$columns
   @column()
   declare address: string
   @column()
-  declare businessId: number
+  declare branchName: string
+  @column()
+  declare businessId: number | null
   @column.dateTime({ autoCreate: true })
-  declare createdAt: DateTime | null
+  declare createdAt: DateTime
   @column({ isPrimary: true })
   declare id: number
   @column()
   declare isActive: boolean | null
   @column()
-  declare isPrimary: boolean
+  declare isPrimary: boolean | null
   @column()
   declare manager: string | null
   @column()
-  declare name: string
-  @column()
-  declare phone: string
+  declare phone: string | null
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null
 }
