@@ -557,7 +557,7 @@ function handleFinishSetup() {
   localStorage.removeItem("onboarding_images");
 
   // Navigate to dashboard
-  navigateTo("/dashboard");
+  navigateTo("/owner/dashboard");
 }
 
 // Finish Later

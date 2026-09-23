@@ -543,16 +543,19 @@ async function sendInvitation() {
       specialties: newStaff.specialties,
     });
 
-    if (response.data) {
+    console.log("Staff response:", JSON.stringify(response));
+    const staffData = response.staff || response.data;
+
+    if (staffData) {
       // Then send the invitation email
       await api.post(
-        `/business/${businessId.value}/staff/${response.data.id}/invite`,
+        `/business/${businessId.value}/staff/${staffData.id}/invite`,
         {},
       );
 
       // Add to team list with Pending Invite status
       teamMembers.value.push({
-        id: response.data.id,
+        id: staffData.id,
         name: newStaff.name,
         email: newStaff.email,
         role: newStaff.role || "Staff",
@@ -560,13 +563,6 @@ async function sendInvitation() {
         specialties: [...newStaff.specialties],
         status: "Pending Invite",
       });
-
-      // Clear form
-      newStaff.name = "";
-      newStaff.email = "";
-      newStaff.role = "";
-      newStaff.locations = [];
-      newStaff.specialties = [];
     } else {
       apiError.value = response.message || "Failed to add staff member.";
     }
