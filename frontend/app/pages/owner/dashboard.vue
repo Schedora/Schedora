@@ -1068,31 +1068,21 @@ const stats = reactive({
 // Revenue chart view toggle
 const revenueView = ref<"weekly" | "monthly">("weekly");
 
-// Weekly chart data
-const weeklyData = [
-  { label: "Mon", completed: 80, pending: 40 },
-  { label: "Tue", completed: 120, pending: 60 },
-  { label: "Wed", completed: 90, pending: 50 },
-  { label: "Thu", completed: 70, pending: 30 },
-  { label: "Fri", completed: 150, pending: 80 },
-  { label: "Sat", completed: 110, pending: 55 },
-  { label: "Sun", completed: 60, pending: 25 },
-];
-
-// Monthly chart data
-const monthlyData = [
-  { label: "Jan", completed: 400, pending: 200 },
-  { label: "Feb", completed: 350, pending: 150 },
-  { label: "Mar", completed: 500, pending: 250 },
-  { label: "Apr", completed: 450, pending: 220 },
-  { label: "May", completed: 600, pending: 300 },
-  { label: "Jun", completed: 550, pending: 280 },
-];
-
 // Current chart data based on view
-const currentChartData = computed(() =>
-  revenueView.value === "weekly" ? weeklyData : monthlyData,
-);
+const currentChartData = computed(() => {
+  if (revenueView.value === "weekly") {
+    return ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((label) => ({
+      label,
+      completed: 0,
+      pending: 0,
+    }));
+  }
+  return ["Jan", "Feb", "Mar", "Apr", "May", "Jun"].map((label) => ({
+    label,
+    completed: 0,
+    pending: 0,
+  }));
+});
 
 // Max bar value for scaling
 const maxBarValue = computed(() =>
@@ -1136,11 +1126,9 @@ const staffPerformance = ref<
 >([]);
 
 // Revenue distribution data
-const revenueDistribution = ref([
-  { label: "Direct Consultations", amount: 12240, color: "#3B82F6" },
-  { label: "Subscription Packs", amount: 8400, color: "#06B6D4" },
-  { label: "Add-on Services", amount: 3810, color: "#D1D5DB" },
-]);
+const revenueDistribution = ref<
+  { label: string; amount: number; color: string }[]
+>([]);
 
 // Total for stacked bar calculation
 const totalDistributionAmount = computed(() =>
