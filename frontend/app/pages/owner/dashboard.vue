@@ -318,7 +318,9 @@
               <div
                 class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center"
               >
-                <span class="text-white text-xs font-semibold">J</span>
+                <span class="text-white text-xs font-semibold">{{
+                  currentUser.full_name?.[0]?.toUpperCase() || "O"
+                }}</span>
               </div>
               <div class="text-left">
                 <p class="text-xs font-semibold text-gray-800">
@@ -403,7 +405,8 @@
           <div>
             <h1 class="text-xl font-bold text-gray-900">Overview Dashboard</h1>
             <p class="text-sm text-gray-500 mt-0.5">
-              Welcome back, Jordan. Here is your business status today.
+              Welcome back, {{ currentUser.full_name }}. Here is your business
+              status today.
             </p>
           </div>
           <!-- Date range picker and Export -->
