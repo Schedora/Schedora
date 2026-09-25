@@ -322,9 +322,11 @@
               </div>
               <div class="text-left">
                 <p class="text-xs font-semibold text-gray-800">
-                  Jordan Schoedra
+                  {{ currentUser.full_name }}
                 </p>
-                <p class="text-xs text-gray-400">Master Admin</p>
+                <p class="text-xs text-gray-400 capitalize">
+                  {{ currentUser.role }}
+                </p>
               </div>
             </button>
 
@@ -495,10 +497,6 @@
                   />
                 </svg>
               </div>
-              <span
-                class="text-xs font-semibold text-green-600 bg-green-50 px-2 py-0.5 rounded-full"
-                >+12.5% ↑</span
-              >
             </div>
             <p class="text-2xl font-bold text-blue-600">
               ${{ stats.totalRevenue.toLocaleString() }}
@@ -526,10 +524,6 @@
                   />
                 </svg>
               </div>
-              <span
-                class="text-xs font-semibold text-teal-600 bg-teal-50 px-2 py-0.5 rounded-full"
-                >84% Capacity</span
-              >
             </div>
             <p class="text-2xl font-bold text-gray-900">{{ stats.bookings }}</p>
             <p class="text-xs text-gray-500 mt-1">Bookings</p>
@@ -555,10 +549,6 @@
                   />
                 </svg>
               </div>
-              <span
-                class="text-xs font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded-full"
-                >12 Urgent</span
-              >
             </div>
             <p class="text-2xl font-bold text-gray-900">
               {{ stats.pendingReviews }}
@@ -582,9 +572,6 @@
                   />
                 </svg>
               </div>
-              <span class="text-xs font-semibold text-gray-500"
-                >4.9 Overall</span
-              >
             </div>
             <p class="text-2xl font-bold text-gray-900">
               {{ stats.avgRating }}
@@ -747,7 +734,7 @@
               @click="navigateTo('/owner/reviews')"
               class="w-full text-center text-xs text-blue-600 hover:text-blue-700 font-medium mt-3"
             >
-              View All 28 Reviews →
+              View All {{ stats.pendingReviews }} Reviews →
             </button>
           </div>
         </div>
@@ -1021,6 +1008,14 @@
 
 <script setup lang="ts">
 definePageMeta({ layout: false });
+const currentUser = computed(() => {
+  if (typeof window !== "undefined") {
+    const user =
+      localStorage.getItem("auth_user") || localStorage.getItem("user");
+    return user ? JSON.parse(user) : { full_name: "Owner", role: "owner" };
+  }
+  return { full_name: "Owner", role: "owner" };
+});
 const api = useApi();
 const isLoading = ref(false);
 
@@ -1077,7 +1072,20 @@ const currentChartData = computed(() => {
       pending: 0,
     }));
   }
-  return ["Jan", "Feb", "Mar", "Apr", "May", "Jun"].map((label) => ({
+  return [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ].map((label) => ({
     label,
     completed: 0,
     pending: 0,
