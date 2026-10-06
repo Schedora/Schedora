@@ -486,7 +486,10 @@
             </tbody>
           </table>
           <div class="px-5 py-3 border-t border-gray-100">
-            <p class="text-xs text-gray-400">Showing 5 of 152 transactions</p>
+            <p class="text-xs text-gray-400">
+              Showing {{ transactions.length }} of
+              {{ totalTransactions }} transactions
+            </p>
           </div>
         </div>
 
@@ -572,28 +575,34 @@ const transactions = ref<
   }[]
 >([]);
 
-const bottomMetrics = [
+const bottomMetrics = computed(() => [
   {
     label: "Avg. Transaction",
-    value: "$103.59",
+    value:
+      completedCount.value > 0
+        ? "$" + (completed.value / completedCount.value).toFixed(2)
+        : "$0.00",
     icon: "M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 11h.01M12 11h.01M15 11h.01M4 19h16a2 2 0 002-2V7a2 2 0 00-2-2H4a2 2 0 00-2 2v10a2 2 0 002 2z",
   },
   {
     label: "Approval Time",
-    value: "1.2 hrs",
+    value: "—",
     icon: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z",
   },
   {
     label: "Refund Rate",
-    value: "0.8%",
+    value: "0%",
     icon: "M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15",
   },
   {
     label: "Projection",
-    value: "$15.2k",
+    value:
+      totalRevenue.value > 0
+        ? "$" + (totalRevenue.value * 1.1).toFixed(0)
+        : "$0",
     icon: "M13 7h8m0 0v8m0-8l-8 8-4-4-6 6",
   },
-];
+]);
 onMounted(async () => {
   isLoading.value = true;
   try {
@@ -626,6 +635,10 @@ onMounted(async () => {
     const txRes = await api.get(
       `/analytics/${businessId.value}/revenue/transactions?page=1&limit=5`,
     );
+
+    if (txRes.data?.pagination) {
+      totalTransactions.value = txRes.data.pagination.total || 0;
+    }
 
     if (txRes.data?.transactions) {
       transactions.value = txRes.data.transactions.map((t: any) => ({
@@ -669,4 +682,5 @@ watch(dayFilter, async () => {
     isLoading.value = false;
   }
 });
+const totalTransactions = ref(0);
 </script>
