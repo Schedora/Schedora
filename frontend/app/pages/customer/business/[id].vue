@@ -143,6 +143,22 @@
               <p v-else class="text-sm text-gray-400">
                 No locations listed yet.
               </p>
+              <!-- Gallery -->
+              <div
+                v-if="images.length > 0"
+                class="bg-white border border-gray-200 rounded-xl p-5 mb-5"
+              >
+                <h2 class="text-base font-bold text-gray-900 mb-4">Gallery</h2>
+                <div class="grid grid-cols-3 gap-3">
+                  <img
+                    v-for="image in images"
+                    :key="image.id"
+                    :src="'http://localhost:3333/' + image.url"
+                    class="w-full h-28 object-cover rounded-xl"
+                    :alt="business?.name"
+                  />
+                </div>
+              </div>
             </div>
           </div>
 
@@ -187,6 +203,7 @@ const loading = ref(true);
 const business = ref(null);
 const services = ref([]);
 const branches = ref([]);
+const images = ref([]);
 
 onMounted(async () => {
   const token =
@@ -229,6 +246,20 @@ onMounted(async () => {
     const branchesData = await branchesRes.json();
     if (branchesData.data) {
       branches.value = branchesData.data;
+    }
+    // Load images
+    const imagesRes = await fetch(
+      `http://localhost:3333/api/businesses/${route.params.id}/images`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+      },
+    );
+    const imagesData = await imagesRes.json();
+    if (imagesData.data) {
+      images.value = imagesData.data;
     }
   } catch (error) {
     console.error("Failed to fetch business details:", error);

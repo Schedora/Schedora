@@ -145,6 +145,23 @@ export default class BusinessesController {
       data: business,
     })
   }
+    /**
+   * GET /businesses/:id/images
+   * Returns all images for a business
+   * Used on the business landing page gallery
+   */
+  async getImages({ params, response }: HttpContext) {
+    const business = await Business.findOrFail(params.id)
+
+    const images = await BusinessImage.query()
+      .where('business_id', business.id)
+      .orderBy('sort_order', 'asc')
+
+    return response.ok({
+      message: 'Images fetched successfully',
+      data: images
+    })
+  }
   /**
    * POST /businesses/:id/images
    * Uploads one or more gallery images for a business

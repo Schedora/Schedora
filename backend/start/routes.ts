@@ -78,6 +78,8 @@ router
 router.get('/api/businesses', [BusinessesController, 'index']).use(publicThrottle)
 router.get('/api/businesses/:id', [BusinessesController, 'show']).use(publicThrottle)
 
+// Get all images for a business — public
+router.get('/api/businesses/:id/images', [BusinessesController, 'getImages'])
 // Public branch route — customers need for booking
 router.get('/api/businesses/:id/branches', [BranchesController, 'index']).use(publicThrottle)
 
