@@ -247,11 +247,17 @@
             <div
               class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center"
             >
-              <span class="text-white text-xs font-semibold">A</span>
+              <span class="text-white text-xs font-semibold">{{
+                currentUser.full_name?.[0]?.toUpperCase() || "O"
+              }}</span>
             </div>
             <div>
-              <p class="text-xs font-semibold text-gray-800">Alex Sterling</p>
-              <p class="text-xs text-gray-400">Owner</p>
+              <p class="text-xs font-semibold text-gray-800">
+                {{ currentUser.full_name }}
+              </p>
+              <p class="text-xs text-gray-400 capitalize">
+                {{ currentUser.role }}
+              </p>
             </div>
           </div>
         </div>
@@ -318,8 +324,14 @@
               <p class="text-3xl font-bold text-gray-900">
                 ${{ totalRevenue.toLocaleString() }}
               </p>
-              <p class="text-xs text-green-600 font-medium mt-0.5">
-                ↑ +14.2% from last week
+              <p
+                v-if="totalRevenue > 0"
+                class="text-xs text-green-600 font-medium mt-0.5"
+              >
+                Active
+              </p>
+              <p v-else class="text-xs text-gray-400 font-medium mt-0.5">
+                No revenue yet
               </p>
             </div>
 
@@ -532,6 +544,14 @@
 
 <script setup lang="ts">
 definePageMeta({ layout: false });
+const currentUser = computed(() => {
+  if (typeof window !== "undefined") {
+    const user =
+      localStorage.getItem("auth_user") || localStorage.getItem("user");
+    return user ? JSON.parse(user) : { full_name: "Owner", role: "owner" };
+  }
+  return { full_name: "Owner", role: "owner" };
+});
 const api = useApi();
 const isLoading = ref(false);
 
