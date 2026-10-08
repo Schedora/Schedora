@@ -203,11 +203,16 @@
             <div
               class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center"
             >
-              <span class="text-white text-xs font-semibold">A</span>
-            </div>
-            <div>
-              <p class="text-xs font-semibold text-gray-800">Alex Rivera</p>
-              <p class="text-xs text-gray-400">Operations Lead</p>
+              <span class="text-white text-xs font-semibold">{{
+                currentUser.full_name?.[0]?.toUpperCase() || "S"
+              }}</span>
+              ...
+              <p class="text-xs font-semibold text-gray-800">
+                {{ currentUser.full_name }}
+              </p>
+              <p class="text-xs text-gray-400 capitalize">
+                {{ currentUser.role }}
+              </p>
             </div>
           </div>
         </div>
@@ -479,6 +484,14 @@
 
 <script setup lang="ts">
 definePageMeta({ layout: false });
+const currentUser = computed(() => {
+  if (typeof window !== "undefined") {
+    const user =
+      localStorage.getItem("auth_user") || localStorage.getItem("user");
+    return user ? JSON.parse(user) : { full_name: "Staff", role: "staff" };
+  }
+  return { full_name: "Staff", role: "staff" };
+});
 const api = useApi();
 const isLoading = ref(false);
 

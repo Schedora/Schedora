@@ -473,6 +473,14 @@
 
 <script setup lang="ts">
 definePageMeta({ layout: false });
+const currentUser = computed(() => {
+  if (typeof window !== "undefined") {
+    const user =
+      localStorage.getItem("auth_user") || localStorage.getItem("user");
+    return user ? JSON.parse(user) : { full_name: "Staff", role: "staff" };
+  }
+  return { full_name: "Staff", role: "staff" };
+});
 const api = useApi();
 const isSubmitting = ref(false);
 const submitError = ref("");
@@ -504,14 +512,13 @@ const recentSubmissions = ref<
 
 // Live Queue data
 const liveQueue = reactive({
-  waiting: 4,
-  totalToday: 12,
-  avgWait: 18,
+  waiting: 0,
+  totalToday: 0,
+  avgWait: 0,
 });
 
-// Staff availability
 const staffAvailability = reactive({
-  available: 3,
+  available: 0,
 });
 
 // Validate form
@@ -612,6 +619,20 @@ onMounted(async () => {
       "Facial & Grooming",
       "Nail Care",
     ];
+  }
+  // Load today's walk-in count
+  try {
+    const businessId = localStorage.getItem("onboarding_business_id");
+    if (businessId) {
+      const response = await api.get(
+        `/businesses/${businessId}/attendance/summary`,
+      );
+      if (response.data) {
+        staffAvailability.available = response.data.length || 0;
+      }
+    }
+  } catch (error) {
+    console.error("Failed to load queue data:", error);
   }
 });
 </script>

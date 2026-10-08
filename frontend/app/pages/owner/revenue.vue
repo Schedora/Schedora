@@ -324,15 +324,6 @@
               <p class="text-3xl font-bold text-gray-900">
                 ${{ totalRevenue.toLocaleString() }}
               </p>
-              <p
-                v-if="totalRevenue > 0"
-                class="text-xs text-green-600 font-medium mt-0.5"
-              >
-                Active
-              </p>
-              <p v-else class="text-xs text-gray-400 font-medium mt-0.5">
-                No revenue yet
-              </p>
             </div>
 
             <!-- Bar Chart -->

@@ -185,11 +185,16 @@
             <div
               class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center"
             >
-              <span class="text-white text-xs font-semibold">A</span>
-            </div>
-            <div>
-              <p class="text-xs font-semibold text-gray-800">Alex Rivera</p>
-              <p class="text-xs text-gray-400">Operations Manager</p>
+              <span class="text-white text-xs font-semibold">{{
+                currentUser.full_name?.[0]?.toUpperCase() || "S"
+              }}</span>
+              ...
+              <p class="text-xs font-semibold text-gray-800">
+                {{ currentUser.full_name }}
+              </p>
+              <p class="text-xs text-gray-400 capitalize">
+                {{ currentUser.role }}
+              </p>
             </div>
           </div>
         </div>
@@ -564,7 +569,6 @@
               Team Presence Score
             </p>
             <p class="text-4xl font-bold">{{ presenceScore }}%</p>
-            <p class="text-xs text-blue-200 mt-1">+2.4% vs. previous week</p>
           </div>
         </div>
       </div>
@@ -640,6 +644,14 @@ onMounted(async () => {
   }
 });
 definePageMeta({ layout: false });
+const currentUser = computed(() => {
+  if (typeof window !== "undefined") {
+    const user =
+      localStorage.getItem("auth_user") || localStorage.getItem("user");
+    return user ? JSON.parse(user) : { full_name: "Staff", role: "staff" };
+  }
+  return { full_name: "Staff", role: "staff" };
+});
 const api = useApi();
 
 // Get logged in staff member ID
