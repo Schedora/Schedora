@@ -215,18 +215,19 @@
             </svg>
           </button>
           <!-- Avatar -->
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2 flex-shrink-0">
             <div
-              class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center"
+              class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0"
             >
               <span class="text-white text-xs font-semibold">{{
                 currentUser.full_name?.[0]?.toUpperCase() || "S"
               }}</span>
-              ...
-              <p class="text-xs font-semibold text-gray-800">
+            </div>
+            <div class="min-w-0">
+              <p class="text-xs font-semibold text-gray-800 truncate">
                 {{ currentUser.full_name }}
               </p>
-              <p class="text-xs text-gray-400 capitalize">
+              <p class="text-xs text-gray-400 capitalize truncate">
                 {{ currentUser.role }}
               </p>
             </div>

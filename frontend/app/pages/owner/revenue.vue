@@ -243,21 +243,93 @@
               />
             </svg>
           </button>
-          <div class="flex items-center gap-2">
-            <div
-              class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center"
+          <!-- Profile Avatar with dropdown -->
+          <div class="relative">
+            <button
+              @click="showProfileMenu = !showProfileMenu"
+              class="flex items-center gap-2 hover:opacity-80 transition"
             >
-              <span class="text-white text-xs font-semibold">{{
-                currentUser.full_name?.[0]?.toUpperCase() || "O"
-              }}</span>
-            </div>
-            <div>
-              <p class="text-xs font-semibold text-gray-800">
-                {{ currentUser.full_name }}
-              </p>
-              <p class="text-xs text-gray-400 capitalize">
-                {{ currentUser.role }}
-              </p>
+              <div
+                class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center"
+              >
+                <span class="text-white text-xs font-semibold">{{
+                  currentUser.full_name?.[0]?.toUpperCase() || "O"
+                }}</span>
+              </div>
+              <div class="text-left">
+                <p class="text-xs font-semibold text-gray-800">
+                  {{ currentUser.full_name }}
+                </p>
+                <p class="text-xs text-gray-400 capitalize">
+                  {{ currentUser.role }}
+                </p>
+              </div>
+            </button>
+
+            <!-- Profile dropdown -->
+            <div
+              v-if="showProfileMenu"
+              class="absolute right-0 top-10 bg-white border border-gray-200 rounded-xl shadow-lg w-52 z-50 py-2"
+            >
+              <button
+                class="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition flex items-center gap-2"
+              >
+                <svg
+                  class="w-4 h-4 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                  />
+                </svg>
+                My Profile
+              </button>
+              <button
+                @click="
+                  navigateTo('/onboarding/business-info');
+                  showProfileMenu = false;
+                "
+                class="w-full text-left px-4 py-2.5 text-sm text-blue-600 hover:bg-blue-50 transition flex items-center gap-2"
+              >
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 4v16m8-8H4"
+                  />
+                </svg>
+                Register a New Business
+              </button>
+              <div class="border-t border-gray-100 my-1"></div>
+              <button
+                class="w-full text-left px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition flex items-center gap-2"
+              >
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                  />
+                </svg>
+                Sign Out
+              </button>
             </div>
           </div>
         </div>
@@ -543,6 +615,7 @@ const currentUser = computed(() => {
   }
   return { full_name: "Owner", role: "owner" };
 });
+const showProfileMenu = ref(false);
 const api = useApi();
 const isLoading = ref(false);
 

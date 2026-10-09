@@ -23,6 +23,7 @@
               />
             </svg>
           </div>
+
           <div>
             <p class="text-sm font-bold text-blue-600">Schedora</p>
             <p class="text-xs text-gray-400">Schedora Staff</p>
@@ -190,6 +191,23 @@
                 clip-rule="evenodd"
               />
             </svg>
+          </div>
+          <div class="flex items-center gap-2">
+            <div
+              class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center"
+            >
+              <span class="text-white text-xs font-semibold">{{
+                currentUser.full_name?.[0]?.toUpperCase() || "S"
+              }}</span>
+            </div>
+            <div>
+              <p class="text-xs font-semibold text-gray-800">
+                {{ currentUser.full_name }}
+              </p>
+              <p class="text-xs text-gray-400 capitalize">
+                {{ currentUser.role }}
+              </p>
+            </div>
           </div>
         </div>
       </header>
