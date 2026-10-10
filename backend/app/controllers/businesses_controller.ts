@@ -210,14 +210,14 @@ export default class BusinessesController {
       const fileName = `${string.generateRandom(16)}.${image.extname}`
 
       // Move the file to our storage folder
-      await image.move('storage/uploads/businesses', {
-        name: fileName,
-      })
+      await image.move('public/uploads/businesses', {
+  name: fileName
+})
 
       // Save the image record to the database
       const businessImage = await BusinessImage.create({
-        businessId: business.id,
-        url: `storage/uploads/businesses/${fileName}`,
+  businessId: business.id,
+  url: `uploads/businesses/${fileName}`,
         isCover: false,
         isBanner: false,
         sortOrder: uploadedImages.length,
