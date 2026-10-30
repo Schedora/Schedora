@@ -105,6 +105,23 @@
               </p>
             </div>
 
+            <!-- Gallery -->
+            <div class="bg-white border border-gray-200 rounded-xl p-5 mb-5">
+              <h2 class="text-base font-bold text-gray-900 mb-4">Gallery</h2>
+              <div v-if="images.length > 0" class="grid grid-cols-3 gap-3">
+                <img
+                  v-for="image in images"
+                  :key="image.id"
+                  :src="'http://localhost:3333/' + image.url"
+                  class="w-full h-28 object-cover rounded-xl"
+                  :alt="business?.name"
+                />
+              </div>
+              <p v-else class="text-sm text-gray-400">
+                No photos uploaded yet.
+              </p>
+            </div>
+
             <!-- Location -->
             <div class="bg-white border border-gray-200 rounded-xl p-5">
               <h2 class="text-base font-bold text-gray-900 mb-4">Locations</h2>
@@ -247,15 +264,10 @@ onMounted(async () => {
     if (branchesData.data) {
       branches.value = branchesData.data;
     }
-    // Load images
+    // Load images (public route)
     const imagesRes = await fetch(
       `http://localhost:3333/api/businesses/${route.params.id}/images`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: "application/json",
-        },
-      },
+      { headers: { Accept: "application/json" } },
     );
     const imagesData = await imagesRes.json();
     if (imagesData.data) {
