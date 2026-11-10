@@ -177,7 +177,10 @@
             />
           </div>
           <!-- Help -->
-          <button class="text-gray-400 hover:text-gray-600">
+          <button
+            @click="navigateTo('/staff/help')"
+            class="text-gray-400 hover:text-gray-600"
+          >
             <svg
               class="w-5 h-5"
               fill="none"
@@ -193,7 +196,10 @@
             </svg>
           </button>
           <!-- Settings -->
-          <button class="text-gray-400 hover:text-gray-600">
+          <button
+            @click="navigateTo('/staff/settings')"
+            class="text-gray-400 hover:text-gray-600"
+          >
             <svg
               class="w-5 h-5"
               fill="none"

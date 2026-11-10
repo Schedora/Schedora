@@ -12,7 +12,10 @@
         <h2 class="text-lg font-semibold text-gray-800">Schedora Business</h2>
         <div class="flex items-center gap-4">
           <!-- Help icon -->
-          <button class="text-gray-400 hover:text-gray-600">
+          <button
+            @click="navigateTo('/onboarding/help')"
+            class="text-gray-400 hover:text-gray-600"
+          >
             <svg
               class="w-5 h-5"
               fill="none"
