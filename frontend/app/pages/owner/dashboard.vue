@@ -290,7 +290,10 @@
           </button>
 
           <!-- Settings -->
-          <button class="text-gray-400 hover:text-gray-600">
+          <button
+            @click="navigateTo('/owner/settings')"
+            class="text-gray-400 hover:text-gray-600"
+          >
             <svg
               class="w-5 h-5"
               fill="none"
