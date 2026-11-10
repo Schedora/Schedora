@@ -163,7 +163,10 @@
               class="pl-9 pr-4 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-48"
             />
           </div>
-          <button class="text-gray-400 hover:text-gray-600">
+          <button
+            @click="navigateTo('/staff/help')"
+            class="text-gray-400 hover:text-gray-600"
+          >
             <svg
               class="w-5 h-5"
               fill="none"

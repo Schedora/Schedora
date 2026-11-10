@@ -141,7 +141,10 @@
       >
         <h1 class="text-base font-bold text-blue-600">Walk-ins Registry</h1>
         <div class="flex items-center gap-3">
-          <button class="text-gray-400 hover:text-gray-600">
+          <button
+            @click="navigateTo('/staff/help')"
+            class="text-gray-400 hover:text-gray-600"
+          >
             <svg
               class="w-5 h-5"
               fill="none"
